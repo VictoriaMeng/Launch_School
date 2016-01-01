@@ -1,0 +1,27 @@
+en:
+	welcome: "Welcome to Arithmetic Two-Number Calculator."
+
+	enter_number_1: "Enter your first number."
+	enter_number_2: "Enter your second number."
+	enter_add: "Type '+' to add."
+	enter_minus: "Type '-' to subtract."
+	enter_multiply: "Type '*' to multiply."
+	enter_divide: "Type '/' to divide."
+	
+	error_not_number: "That's not a number! Please enter a number."
+	error_not_operator: "That's not an operator! Please enter an operator."
+
+zh-Hans:
+	welcome: "欢迎使用算术双数计算器。"
+
+	enter_number_1: "输入第一个数字。"
+	enter_number_2: "输入第二个数字。"
+	enter_add: "输入 '+' 来加数字"
+	enter_minus: "输入 '-' 来减数字。"
+	enter_multiply: "输入 '*' 来乘数字。"
+	enter_divide: "输入 '/' 来除数字。"
+	
+	error_not_number: "这不是数字！只能输入数字."
+	error_not_operator: "这不是运算符！只能输入运算符."
+
+	
