@@ -1,12 +1,12 @@
 en:
-  welcome: "Welcome to Your Mortgage Calculator."
+  welcome: "Welcome to Your Mortgage Calculator. - We will help you calculate your monthly payment."
 
-  enter_loan_amount: "Enter your total Loan Amount - (ie, Enter '5000' for a $5000 loan.)"
-  enter_APR: "Enter your Annual Percentage Rate (APR) as a percent. - (ie, Enter '6.5' to indicate 6.5%.)"
+  enter_loan_amount: "Enter your total Loan Amount - (ie, Enter '10000' for a $10,000.00 loan.)"
+  enter_annual_rate: "Enter your Annual Interest Rate as a percent. - (ie, Enter '6.5' to indicate 6.5%.)"
   enter_loan_duration_years: "Enter your Loan Duration in years - (ie, Enter '10' for 10 years.)"
+  enter_yes_no: "Please enter 'Y' or 'No'."
 
-  confirm_loan_amount: "Your total Loan Amount is: "
+  error_not_number: "That's not a postive number! Please enter a positive number."
+  error_not_integer: "Your Loan Duration in Years must be a positive integer. Please enter a positive integer."
 
-  confirm_yes_no: " - Is this correct? (Y/N)"
-
-  error_not_number: "That's not a number! Please enter a number."
+  monthly_payment: "Your monthly payment is: $"
