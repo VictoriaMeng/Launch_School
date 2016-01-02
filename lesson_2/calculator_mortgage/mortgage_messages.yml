@@ -1,0 +1,12 @@
+en:
+  welcome: "Welcome to Your Mortgage Calculator."
+
+  enter_loan_amount: "Enter your total Loan Amount - (ie, Enter '5000' for a $5000 loan.)"
+  enter_APR: "Enter your Annual Percentage Rate (APR) as a percent. - (ie, Enter '6.5' to indicate 6.5%.)"
+  enter_loan_duration_years: "Enter your Loan Duration in years - (ie, Enter '10' for 10 years.)"
+
+  confirm_loan_amount: "Your total Loan Amount is: "
+
+  confirm_yes_no: " - Is this correct? (Y/N)"
+
+  error_not_number: "That's not a number! Please enter a number."
