@@ -9,7 +9,7 @@ end
 
 def positive_number?(input)
   (input == input.to_i.to_s || input == input.to_f.to_s) && input.to_f > 0
-end 
+end
 
 def positive_integer?(input)
   input == input.to_i.to_s && input.to_i > 0
@@ -25,7 +25,7 @@ def check_for_number(input, lang, error)
     prompt(lang, error)
     input = gets.chomp
   end
-    input
+  input
 end
 
 def check_for_integer(input, lang, error)
@@ -46,8 +46,7 @@ def confirm_input(input, lang, item)
   yes_no(confirm)
 end
 
-loop do 
-
+loop do
   prompt(lang, "welcome")
 
   begin
@@ -77,16 +76,16 @@ loop do
   monthly_rate = annual_rate / 12
   duration_months = duration_years * 12
 
-  monthly_payment = loan_amount * 
-                  (monthly_rate * (1 + monthly_rate) ** duration_months) /
-                  ((1 + monthly_rate) ** duration_months - 1)
+  monthly_payment = loan_amount *
+                    (monthly_rate *
+                    (1 + monthly_rate)**duration_months) /
+                    ((1 + monthly_rate)**duration_months - 1)
 
   puts "--> Your monthly payment is: $#{monthly_payment.round(2)}"
 
   prompt(lang, "again?")
   again = gets.chomp
   break unless again.downcase == "a"
-
 end
 
 prompt(lang, "thanks")
