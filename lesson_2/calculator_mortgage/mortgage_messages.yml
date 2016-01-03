@@ -9,4 +9,5 @@ en:
   error_not_number: "That's not a postive number! Please enter a positive number."
   error_not_integer: "Your Loan Duration in Years must be a positive integer. Please enter a positive integer."
 
-  monthly_payment: "Your monthly payment is: $"
+  again?: "Enter 'A' for another calculation. Press any other key to exit."
+  thanks: "Thank you for using Your Mortgage Calculator."

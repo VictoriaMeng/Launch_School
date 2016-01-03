@@ -46,39 +46,47 @@ def confirm_input(input, lang, item)
   yes_no(confirm)
 end
 
-prompt(lang, "welcome")
+loop do 
 
-begin
-  prompt(lang, "enter_loan_amount")
-  input = gets.chomp
-  input = check_for_number(input, lang, "error_not_number")
-  confirmed = confirm_input("$#{input}", lang, "total Loan Amount")
-end until confirmed == "yes"
-loan_amount = input.to_f.round(2)
+  prompt(lang, "welcome")
 
-begin
-  prompt(lang, "enter_annual_rate")
-  input = gets.chomp
-  input = check_for_number(input, lang, "error_not_number")
-  confirmed = confirm_input("#{input.to_f.round(2)}%", lang, "Annual Interest Rate")
-end until confirmed == "yes"
-annual_rate = input.to_f / 100
+  begin
+    prompt(lang, "enter_loan_amount")
+    input = gets.chomp
+    input = check_for_number(input, lang, "error_not_number")
+    confirmed = confirm_input("$#{input}", lang, "total Loan Amount")
+  end until confirmed == "yes"
+  loan_amount = input.to_f.round(2)
 
-begin
-  prompt(lang, "enter_loan_duration_years")
-  input = gets.chomp
-  input = check_for_integer(input, lang, "error_not_integer")
-  confirmed = confirm_input("#{input} Years", lang, "Loan Duration in Years")
-end until confirmed == "yes"
-duration_years = input.to_i
+  begin
+    prompt(lang, "enter_annual_rate")
+    input = gets.chomp
+    input = check_for_number(input, lang, "error_not_number")
+    confirmed = confirm_input("#{input.to_f.round(2)}%", lang, "Annual Interest Rate")
+  end until confirmed == "yes"
+  annual_rate = input.to_f / 100
 
-monthly_rate = annual_rate / 12
-duration_months = duration_years * 12
+  begin
+    prompt(lang, "enter_loan_duration_years")
+    input = gets.chomp
+    input = check_for_integer(input, lang, "error_not_integer")
+    confirmed = confirm_input("#{input} Years", lang, "Loan Duration in Years")
+  end until confirmed == "yes"
+  duration_years = input.to_i
 
-monthly_payment = loan_amount * 
+  monthly_rate = annual_rate / 12
+  duration_months = duration_years * 12
+
+  monthly_payment = loan_amount * 
                   (monthly_rate * (1 + monthly_rate) ** duration_months) /
                   ((1 + monthly_rate) ** duration_months - 1)
 
-puts "--> Your monthly payment is: $#{monthly_payment.round(2)}"
+  puts "--> Your monthly payment is: $#{monthly_payment.round(2)}"
 
+  prompt(lang, "again?")
+  again = gets.chomp
+  break unless again.downcase == "a"
 
+end
+
+prompt(lang, "thanks")
