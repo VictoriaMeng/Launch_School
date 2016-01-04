@@ -1,0 +1,23 @@
+en:
+  welcome: "Welcome to Rock Paper Scissors Lizard Spock! Win 5 hands to win the game!"
+
+  enter_hand: "Enter a number to pick a hand: 1) Rock - 2) Paper - 3) Scissors - 4) Lizard - 5) Spock"
+
+  rock_scissors: "Rock crushes Scissors."
+  rock_lizard: "Rock crushes Lizard."
+  paper_rock: "Paper wraps Rock."
+  paper_spock: "Paper disproves Spock."
+  scissors_paper: "Scissors cuts Paper."
+  scissors_lizard: "Scissors decapitates Lizard."
+  lizard_spock: "Lizard poisons Spock."
+  lizard_paper: "Lizard eats Paper."
+  spock_rock: "Spock vaporizes Rock."
+  spock_scissors: "Spock smashes Scissors."
+
+  play_again?: "Would you like to play again? (Y/N) - Enter 'Y' for yes, 'N' for no."
+
+  thanks: "Thanks for playing!"
+
+
+
+
