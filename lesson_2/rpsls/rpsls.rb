@@ -9,7 +9,8 @@ HAND_LIST = {
               4 => "Lizard", 
               5 => "Spock"
                                 }
-WINS = {
+
+WINNING_HANDS = {
           "Rock" => ["Scissors", "Lizard"],
           "Paper" => ["Rock", "Spock"],
           "Scissors" => ["Paper", "Lizard"],
@@ -17,52 +18,63 @@ WINS = {
           "Spock" => ["Rock", "Scissors"],
                                               }
 
+HAND_COMBO_MESSAGES = {
+                        %w(Rock Scissors) => MESSAGES[lang]["rock_scissors"],
+                        %w(Lizard Rock) => MESSAGES[lang]["rock_lizard"],
+                        %w(Paper Rock) => MESSAGES[lang]["paper_rock"],
+                        %w(Paper Spock) => MESSAGES[lang]["paper_spock"],
+                        %w(Paper Scissors) => MESSAGES[lang]["scissors_paper"],
+                        %w(Lizard Scissors) => MESSAGES[lang]["scissors_lizard"],
+                        %w(Lizard Spock) => MESSAGES[lang]["lizard_spock"],
+                        %w(Lizard Paper) => MESSAGES[lang]["lizard_paper"], 
+                        %w(Rock Spock) => MESSAGES[lang]["spock_rock"],
+                        %w(Scissors Spock) => MESSAGES[lang]["spock_scissors"]
+                                                                                  }
+
 def prompt(lang, message)
   puts "--> " + MESSAGES[lang][message]
 end
 
-def print_tally(players)
-  puts "--> Your Wins: #{players[:human][:wins]} - Computer Wins: #{players[:computer][:wins]}"
+def print_tally(tally)
+  puts "--> Your Wins: #{tally[:wins]} - Computer Wins: #{tally[:losses]} - Ties: #{tally[:ties]}"
 end
 
-def check_hand(input, list)
+def valid_hand?(input, list)
   list.has_value?(input.capitalize) || (1..5).include?(input.to_i)
 end
 
-def convert_hand(input, list)
+def convert_hand_input(input, list)
   return input.capitalize if list.has_value?(input.capitalize)
   return list[input.to_i] if (1..5).include?(input.to_i) 
 end
 
-def compare_hands(players, wins)
-  human = players[:human][:hand]
-  computer = players[:computer][:hand]
-
-  if human == computer
+def round_result(hands, tally, wins)
+  if hands[:human] == hands[:computer]
+    tally[:ties] += 1
     "It's a tie!"
-  elsif wins[human].include?(computer)
-    players[:human][:wins] += 1
+  elsif wins[hands[:human]].include?(hands[:computer])
+    tally[:wins] += 1
     "You win!"
   else
-    players[:computer][:wins] += 1
+    tally[:losses] += 1
     "You lose!"
   end
 end
 
-def print_round_winner(players, result)
-  human = players[:human][:hand]
-  computer = players[:computer][:hand]
-
-  puts "--> You pick #{human}. Computer picks #{computer}."
-
-  puts "--> #{human} beats #{computer}. #{result}" if result == "You win!"
-  puts "--> #{computer} beats #{human}. #{result}" if result == "You lose!"
-  puts "--> #{result}" if result == "It's a tie!"
+def round_action(hands, lang, messages)
+  hands = [hands[:human], hands[:computer]].sort
+  messages[hands]
 end
 
-def print_final_winner(players)
-  puts "You win 5 rounds! You win!" if players[:human][:wins] == 5
-  puts "Computer wins 5 rounds! You lose!" if players[:computer][:wins] == 5
+def print_round_summary(round)
+  puts "--> You pick #{round[:hands][:human]}. Computer picks #{round[:hands][:computer]}."
+  puts "--> #{round[:action]} #{round[:result]}" if round[:result] != "It's a tie!"
+  puts "--> #{round[:result]}" if round[:result] == "It's a tie!"
+end
+
+def print_final_winner(tally)
+  puts "You win 5 rounds! You win!" if tally[:wins] == 5
+  puts "Computer wins 5 rounds! You lose!" if tally[:losses] == 5
 end
 
 def yes_no(play_again)
@@ -71,30 +83,36 @@ def yes_no(play_again)
 end
 
 loop do
-  players = {
-            human: {wins: 0},
-            computer: {wins: 0}
-            }
+  tally_human = {
+                  wins: 0, 
+                  losses: 0, 
+                  ties: 0
+                            }
+
+  round = {
+            hands: {},
+                        }
 
   prompt(lang, "welcome")
 
-  until players[:human][:wins] == 5 || players[:computer][:wins] == 5
-    print_tally(players)
+  until tally_human[:wins] == 5 || tally_human[:losses] == 5
+    print_tally(tally_human)
 
     begin
       prompt(lang, "enter_hand")
-      input = gets.chomp
-      players[:human][:hand] = convert_hand(input, HAND_LIST)
-    end until players[:human][:hand]
+      hand_input = gets.chomp
+      round[:hands][:human] = convert_hand_input(hand_input, HAND_LIST)
+    end until valid_hand?(hand_input, HAND_LIST)
 
-    players[:computer][:hand] = HAND_LIST[(1..5).to_a.sample]
+    round[:hands][:computer] = HAND_LIST[(1..5).to_a.sample]
 
-    round_result = compare_hands(players, WINS)
+    round[:action] = round_action(round[:hands], lang, HAND_COMBO_MESSAGES)
+    round[:result] = round_result(round[:hands], tally_human, WINNING_HANDS)
 
-    print_round_winner(players, round_result)
+    print_round_summary(round)
   end
 
-  print_final_winner(players)
+  print_final_winner(tally_human)
 
   begin
     prompt(lang, "play_again?")
