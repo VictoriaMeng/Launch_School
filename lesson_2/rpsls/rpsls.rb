@@ -2,33 +2,30 @@ require "yaml"
 lang = "en"
 MESSAGES = YAML.load_file("rpsls_messages.yml")
 
-HAND_LIST = {
-              1 => "Rock", 
-              2 => "Paper", 
-              3 => "Scissors", 
-              4 => "Lizard", 
+HAND_LIST = { 1 => "Rock",
+              2 => "Paper",
+              3 => "Scissors",
+              4 => "Lizard",
               5 => "Spock"
-                                }
+            }
 
-WINNING_HANDS = {
-          "Rock" => ["Scissors", "Lizard"],
-          "Paper" => ["Rock", "Spock"],
-          "Scissors" => ["Paper", "Lizard"],
-          "Lizard" => ["Spock", "Paper"],
-          "Spock" => ["Rock", "Scissors"],
-                                              }
+WINNING_HANDS = {  "Rock" => %w(Scissors Lizard),
+                   "Paper" => %w(Rock Spock),
+                   "Scissors" => %w(Paper Lizard),
+                   "Lizard" => %w(Spock Paper),
+                   "Spock" => %w(Spock Paper)
+                }
 
-HAND_COMBO_MESSAGES = {
-                        %w(Rock Scissors) => MESSAGES[lang]["rock_scissors"],
-                        %w(Lizard Rock) => MESSAGES[lang]["rock_lizard"],
-                        %w(Paper Rock) => MESSAGES[lang]["paper_rock"],
-                        %w(Paper Spock) => MESSAGES[lang]["paper_spock"],
-                        %w(Paper Scissors) => MESSAGES[lang]["scissors_paper"],
-                        %w(Lizard Scissors) => MESSAGES[lang]["scissors_lizard"],
-                        %w(Lizard Spock) => MESSAGES[lang]["lizard_spock"],
-                        %w(Lizard Paper) => MESSAGES[lang]["lizard_paper"], 
-                        %w(Rock Spock) => MESSAGES[lang]["spock_rock"],
-                        %w(Scissors Spock) => MESSAGES[lang]["spock_scissors"]
+HAND_COMBO_MESSAGES = {  %w(Rock Scissors) => MESSAGES[lang]["rock_scissors"],
+                         %w(Lizard Rock) => MESSAGES[lang]["rock_lizard"],
+                         %w(Paper Rock) => MESSAGES[lang]["paper_rock"],
+                         %w(Paper Spock) => MESSAGES[lang]["paper_spock"],
+                         %w(Paper Scissors) => MESSAGES[lang]["scissors_paper"],
+                         %w(Lizard Scissors) => MESSAGES[lang]["scissors_lizard"],
+                         %w(Lizard Spock) => MESSAGES[lang]["lizard_spock"],
+                         %w(Lizard Paper) => MESSAGES[lang]["lizard_paper"],
+                         %w(Rock Spock) => MESSAGES[lang]["spock_rock"],
+                         %w(Scissors Spock) => MESSAGES[lang]["spock_scissors"]
                                                                                   }
 
 def prompt(lang, message)
@@ -40,12 +37,12 @@ def print_tally(tally)
 end
 
 def valid_hand?(input, list)
-  list.has_value?(input.capitalize) || (1..5).include?(input.to_i)
+  list.value?(input.capitalize) || (1..5).include?(input.to_i)
 end
 
 def convert_hand_input(input, list)
-  return input.capitalize if list.has_value?(input.capitalize)
-  return list[input.to_i] if (1..5).include?(input.to_i) 
+  return input.capitalize if list.value?(input.capitalize)
+  return list[input.to_i] if (1..5).include?(input.to_i)
 end
 
 def round_result(hands, tally, wins)
@@ -61,9 +58,9 @@ def round_result(hands, tally, wins)
   end
 end
 
-def round_action(hands, lang, messages)
+def round_action(hands, combo_messages)
   hands = [hands[:human], hands[:computer]].sort
-  messages[hands]
+  combo_messages[hands]
 end
 
 def print_round_summary(round)
@@ -83,15 +80,13 @@ def yes_no(play_again)
 end
 
 loop do
-  tally_human = {
-                  wins: 0, 
-                  losses: 0, 
-                  ties: 0
-                            }
+  tally_human = {  wins: 0,
+                   losses: 0,
+                   ties: 0
+                }
 
-  round = {
-            hands: {},
-                        }
+  round = { hands: {},
+          }
 
   prompt(lang, "welcome")
 
@@ -122,14 +117,3 @@ loop do
 end
 
 prompt(lang, "thanks")
-
-
-
-
-
-
-
-
-
-
-
