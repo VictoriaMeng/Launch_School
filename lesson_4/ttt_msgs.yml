@@ -1,0 +1,12 @@
+en:
+  welcome: "Let's play Tic-Tac-Toe!"
+
+  enter_symbol: "Pick your Symbol: X or O"
+
+  you_are: "You are"
+  opponent_is: "Your opponent is"
+  randomize_turns: "Randomizing turn order..."
+  human_first: "You go first!"
+  computer_first: "Computer goes first!"
+
+  error_symbol_invalid: "Please enter 'X' or 'O'."
