@@ -1,12 +1,42 @@
 en:
-  welcome: "Let's play Tic-Tac-Toe!"
+  hi_bye:
+    welcome: "Let's play Tic-Tac-Toe! - Whoever wins 5 rounds wins the game!"
+    play_again: "Play again? Press 'Y' for yes, 'N' for no."
+    thanks: "Thanks for playing!"
 
-  enter_symbol: "Pick your Symbol: X or O"
+  symbols:
+    enter_symbol: "Enter 'X' or 'O' to select your symbol."
 
-  you_are: "You are"
-  opponent_is: "Your opponent is"
-  randomize_turns: "Randomizing turn order..."
-  human_first: "You go first!"
-  computer_first: "Computer goes first!"
+  turn_order:
+    randomize_turns: "Randomizing turn order..."
+    human_first: "You go first this round!"
+    computer_first: "Computer goes first this round!"
 
-  error_symbol_invalid: "Please enter 'X' or 'O'."
+  turn_human:
+    enter_square: "Choose an empty square to place a piece:"
+    error_square_invalid: "That is not a square. Available squares:"
+    error_square_blocked: "That square is already taken. Available squares:"
+    you_placed: "You placed"
+    in_square: "in Square"
+
+  turn_computer:
+    computer_placed: "Computer placed"
+    in_square: "in Square"
+
+  results_round:
+    win: "Congratulations! You win this round!"
+    loss: "Computer wins! You lose this round!"
+    tie: "This round is a tie!"
+    next_round: "Press any key to play the next round."
+
+  results_game:
+    win: "You won 5 rounds! You win the game!"
+    loss: "You lost 5 rounds! You lose the game!"
+
+  score:
+    wins: "Wins:"
+    losses: "Losses:"
+    ties: "Ties:"
+
+
+
