@@ -114,10 +114,10 @@ def two_in_row(board, symbol)
 end
 
 def pick_square_computer(board, symbols)
-  if two_in_row?(board, symbols[:computer])
-    two_in_row?(board, symbols[:computer])
-  elsif two_in_row?(board, symbols[:human])
-    two_in_row?(board, symbols[:human])
+  if two_in_row(board, symbols[:computer])
+    two_in_row(board, symbols[:computer])
+  elsif two_in_row(board, symbols[:human])
+    two_in_row(board, symbols[:human])
   elsif board[5] == " "
     5
   else
@@ -150,7 +150,7 @@ def three_in_row(board, symbols)
 end
 
 def round_end?(board, symbols)
-  three_in_row?(board, symbols) || !board.value?(" ")
+  three_in_row(board, symbols) || !board.value?(" ")
 end
 
 def result_round(board, game, lang, category)
