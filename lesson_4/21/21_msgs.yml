@@ -14,7 +14,7 @@ en:
   results:
     player_win:
       blackjack_player: "gets Blackjack! You win!"
-      dealer_bust: "wins! The dealer busted!"
+      dealer_bust: "wins! The Dealer busted!"
       player_standard_win: "'s hand is higher! You win!"
 
     player_lose:
@@ -22,4 +22,4 @@ en:
       blackjack_dealer: "Dealer gets Blackjack! You lose!"
       tie: "Dealer wins ties. You lose!"
       player_bust: "You busted! You lose!"
-      dealer_standard_win: "The dealer's hand is higher! You lose!"
+      dealer_standard_win: "The Dealer's hand is higher! You lose!"

@@ -24,11 +24,11 @@ end
 
 def enter_name(lang, message)
   prompt_announce(lang, message)
-  name = gets.chomp
+  gets.chomp
 end
 
-def new_deck
-  deck = (2..10).to_a.concat(%w(Jack Queen King Ace(11))).product(%w(Hearts Diamonds Clubs Spades))
+def deck
+  (2..10).to_a.concat(%w(Jack Queen King Ace(11))).product(%w(Hearts Diamonds Clubs Spades))
 end
 
 def card_value(card)
@@ -43,7 +43,7 @@ def card_value(card)
 end
 
 def ace_adjust(hand)
-  for card in hand[:cards] do 
+  for card in hand[:cards] do
     if card[0] == "Ace(11)" && hand[:total] > TARGET
       card[0] = "Ace(1)"
       hand[:total] -= 10
@@ -68,16 +68,16 @@ def show_card_dealt(card, message)
 end
 
 def print_hand(name, hand)
-  cards = hand[:cards].map {|card| "#{card_name(card)}"}.flatten
+  cards = hand[:cards].map { |card| card_name(card).to_s }.flatten
   puts "#{name}'s Hand: #{cards} --- Total: #{hand[:total]}"
 end
 
 def show_one_card(hand)
   first_card = hand.first
-  puts <<-SHOW_CARD
-Dealer Shows: #{card_name(first_card)} --- \
-Value: #{card_value(first_card[0])}
-    SHOW_CARD
+  puts <<~SHOW_CARD
+    Dealer Shows: #{card_name(first_card)} --- \
+    Value: #{card_value(first_card[0])}
+  SHOW_CARD
 end
 
 def blackjack_check(hands)
@@ -112,7 +112,7 @@ def player_turn(name, deck, hand, message)
   turn_end
 end
 
-def dealer_turn(name, deck, hand, message)
+def dealer_turn(deck, hand, message)
   until hand[:total] > DEALER_STAND_VALUE
     card = deal_card(deck, hand)
     show_card_dealt(card, message)
@@ -120,7 +120,7 @@ def dealer_turn(name, deck, hand, message)
   print_hand("Dealer", hand)
   return "dealer_bust" if hand[:total] > TARGET
   "stand"
-end 
+end
 
 def compare_hands(hands)
   return "tie" if hands[:player][:total] == hands[:dealer][:total]
@@ -132,7 +132,7 @@ def print_winner(name, game_end, messages)
   if messages["player_win"].keys.include?(game_end)
     announce "#{name} #{messages["player_win"][game_end]}"
   else
-    announce "#{messages["player_lose"][game_end]}"
+    announce messages["player_lose"][game_end].to_s
   end
 end
 
@@ -147,13 +147,13 @@ end
 
 loop do
   eight_decks = []
-  eight_decks = new_deck * 8
+  eight_decks = deck * 8
 
   name = enter_name(lang, "enter_name")
-  hands = {  player: {  cards: [], 
+  hands = { player: { cards: [],
                        total: 0
                     },
-            dealer: {  cards: [],
+            dealer: { cards: [],
                        total: 0
                     }
           }
@@ -174,10 +174,10 @@ loop do
       game_end = "player_bust"
     else
       print_hand("Dealer", hands[:dealer])
-      dealer_turn_end = dealer_turn("Dealer", eight_decks, hands[:dealer], MESSAGES[lang]["show_card_dealt"])
+      dealer_turn_end = dealer_turn(eight_decks, hands[:dealer], MESSAGES[lang]["show_card_dealt"])
       game_end = "dealer_bust" if dealer_turn_end == "dealer_bust"
       game_end = compare_hands(hands) if dealer_turn_end == "stand"
-    end  
+    end
   end
 
   prompt_announce(lang, "final_results")
