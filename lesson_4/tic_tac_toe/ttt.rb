@@ -47,7 +47,7 @@ def assign_symbols(symbols, lang, category)
                        end
 end
 
-def print_human_first(messages, player)
+def print_human_first(player, messages)
   say <<~HUMAN_FIRST if player == "human"
     #{messages["randomize_turns"]} \
     #{messages["human_first"]}
@@ -72,7 +72,7 @@ def turn_order
 end
 
 def squares_blank(board)
-  board.keys.select { |square, symbol| square if board[square] == " " }
+  board.keys.select { |square, _| square if board[square] == " " }
 end
 
 def join_or(squares, delimiter=", ", word="or")
@@ -80,7 +80,7 @@ def join_or(squares, delimiter=", ", word="or")
   squares.join(delimiter)
 end
 
-def pick_square_human(board, symbol, messages)
+def pick_square_human(board, messages)
   say "#{messages["enter_square"]} #{join_or(squares_blank(board))}"
   begin
     input = gets.chomp
@@ -95,7 +95,7 @@ def pick_square_human(board, symbol, messages)
 end
 
 def turn_human(board, symbol, messages)
-  square = pick_square_human(board, symbol, messages)
+  square = pick_square_human(board, messages)
   board[square] = symbol
   draw_board(board)
   say <<~SQUARE
@@ -114,10 +114,10 @@ def two_in_row(board, symbol)
 end
 
 def pick_square_computer(board, symbols)
-  if two_in_row?(board, symbols[:computer])
-    two_in_row?(board, symbols[:computer])
-  elsif two_in_row?(board, symbols[:human])
-    two_in_row?(board, symbols[:human])
+  if two_in_row(board, symbols[:computer])
+    two_in_row(board, symbols[:computer])
+  elsif two_in_row(board, symbols[:human])
+    two_in_row(board, symbols[:human])
   elsif board[5] == " "
     5
   else
@@ -150,7 +150,7 @@ def three_in_row(board, symbols)
 end
 
 def round_end?(board, symbols)
-  three_in_row?(board, symbols) || !board.value?(" ")
+  three_in_row(board, symbols) || !board.value?(" ")
 end
 
 def result_round(board, game, lang, category)
@@ -198,9 +198,9 @@ def next_round?(lang, category)
 end
 
 loop do
-  game = {  score: { wins: 0,
-                      losses: 0,
-                      ties: 0
+  game = {score: { wins: 0,
+                   losses: 0,
+                   ties: 0
                       },
             symbols: {}
          }
@@ -228,7 +228,7 @@ loop do
     next_round?(lang, "results_round")
   end
 
-  result_game(game[:score], lang, "results_game") 
+  result_game(game[:score], lang, "results_game")
   break unless play_again?(lang, "hi_bye")
 end
 
