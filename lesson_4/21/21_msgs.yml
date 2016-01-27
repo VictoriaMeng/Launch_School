@@ -1,4 +1,25 @@
 en:
   enter_name: "What's your name?"
 
-  announce_card: "Dealer deals a"
+  show_card_dealt: "Dealer deals a"
+
+  hit_stand: "Press 'H' to hit, 'S' to stand."
+
+  play_again: "Would you like to play again? Press 'Y' for yes, 'N' for no."
+
+  thanks: "Thanks for playing!"
+
+  final_results: "Final Results"
+
+  results:
+    player_win:
+      blackjack_player: "gets Blackjack! You win!"
+      dealer_bust: "wins! The dealer busted!"
+      player_standard_win: "'s hand is higher! You win!"
+
+    player_lose:
+      blackjack_tie: "You both get Blackjack, but dealer wins ties. You lose!"
+      blackjack_dealer: "Dealer gets Blackjack! You lose!"
+      tie: "Dealer wins ties. You lose!"
+      player_bust: "You busted! You lose!"
+      dealer_standard_win: "The dealer's hand is higher! You lose!"
