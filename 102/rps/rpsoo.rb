@@ -3,23 +3,29 @@ HANDS = { %w(rock r) => "Rock", %w(paper p) => "Paper", %w(scissors s) => "Sciss
 WINNING_HANDS = { "Rock" => "Scissors", "Paper" => "Rock", "Scissors" => "Paper"}
 
 class Player
+  attr_accessor :wins
+
   attr_reader :hand, :name
 
   def initialize(name)
     @name = name
+    @wins = 0
   end
 
   def self.compare_hands(human, computer)
     if human.hand == computer.hand
-      "tie"
+      Round.add_tie
+      self.show_round_winner(human, computer, "tie")
     elsif WINNING_HANDS[human.hand] == computer.hand
-      "human"
+      human.wins += 1
+      self.show_round_winner(human, computer, "human")
     else
-      "computer"
+      computer.wins += 1
+      self.show__round_winner(human, computer, "computer")
     end
   end
 
-  def self.announce_winner(human, computer, winner)
+  def self.announce_round_winner(human, computer, winner)
     case winner
     when "tie"
       say "You both picked #{human.hand}. It's a tie!"
@@ -28,6 +34,14 @@ class Player
     else
       say "#{human.name} picked #{human.hand}. Computer picked #{computer.hand}. You lose!"
     end
+  end
+
+  def self.five_rounds_won?(human, computer)
+    human.wins == 5 || computer.wins == 5
+  end
+
+  def self.announce_game_winner
+    
   end
 
   def choose_hand
@@ -61,22 +75,14 @@ class Round
   attr_accessor :rounds, :ties
 
   @@rounds = 0
-  @@wins = 0
-  @@losses = 0
   @@ties = 0
 
   def initialize
     @@rounds += 1
   end
 
-  def self.tally_score(winner)
-    @@wins += 1 if winner == "human"
-    @@losses += 1 if winner == "computer"
-    @@ties += 1 if winner == "tie"
-  end
-
-  def self.five_rounds_won?
-    @@wins == 5 || @losses == 5
+  def self.add_tie
+    @@ties += 1
   end
 end
 
@@ -110,10 +116,8 @@ loop do
   Round.new
   computer.choose_hand
   human.choose_hand
-  result = Player.compare_hands(human, computer)
-  Round.tally_score(result)
-  Player.announce_winner(human, computer, result)
-  break if !play_again? || Round.five_rounds_won?
+  Player.compare_hands(human, computer)
+  break if !play_again? || Player.five_rounds_won?(human, computer)
 end
 
 puts "Thanks for playing!"
