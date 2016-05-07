@@ -3,9 +3,11 @@ HANDS = { %w(rock r) => "Rock", %w(paper p) => "Paper", %w(scissors s) => "Sciss
 WINNING_HANDS = { "Rock" => "Scissors", "Paper" => "Rock", "Scissors" => "Paper"}
 
 class Player
-  attr_accessor :wins
+  attr_accessor :wins, :winner
 
   attr_reader :hand, :name
+
+  @@winner = nil
 
   def initialize(name)
     @name = name
@@ -21,11 +23,11 @@ class Player
       self.show_round_winner(human, computer, "human")
     else
       computer.wins += 1
-      self.show__round_winner(human, computer, "computer")
+      self.show_round_winner(human, computer, "computer")
     end
   end
 
-  def self.announce_round_winner(human, computer, winner)
+  def self.show_round_winner(human, computer, winner)
     case winner
     when "tie"
       say "You both picked #{human.hand}. It's a tie!"
@@ -36,12 +38,26 @@ class Player
     end
   end
 
-  def self.five_rounds_won?(human, computer)
-    human.wins == 5 || computer.wins == 5
+  def self.set_game_winner(human, computer)
+    @@winner = human.name if human.wins > computer.wins
+    @@winner = "Computer" if computer.wins > human.wins
+    @@winner = "tie" if human.wins == computer.wins
   end
 
-  def self.announce_game_winner
-    
+  def self.game_winner
+    @@winner
+  end
+
+  def self.show_game_winner(human, computer)
+    print "--> #{human.name} won #{human.wins} rounds. Computer won #{computer.wins} rounds. "
+    case @@winner
+    when human.name
+      puts "You win!"
+    when "Computer"
+      puts "You lose!"
+    else
+      puts "It's a tie!"
+    end
   end
 
   def choose_hand
@@ -72,8 +88,6 @@ class Player
 end
 
 class Round
-  attr_accessor :rounds, :ties
-
   @@rounds = 0
   @@ties = 0
 
@@ -83,6 +97,18 @@ class Round
 
   def self.add_tie
     @@ties += 1
+  end
+
+  def self.rounds
+    @@rounds
+  end
+
+  def self.ties
+    @@ties
+  end
+
+  def self.five_rounds?
+    @@rounds == 5
   end
 end
 
@@ -96,28 +122,42 @@ def get_name
 end
 
 def show_intro
-  say "Let's play Rock-Paper-Scissors. Win 5 rounds to win the game."
+  say "Let's play Rock-Paper-Scissors. Best of 5 wins the game!"
+end
+
+def play_round(human, computer)
+  Round.new
+  computer.choose_hand
+  human.choose_hand
+  Player.compare_hands(human, computer)
+  Player.show_score(human, computer)
+end
+
+def show_score(human, computer)
+  say "Rounds Played: #{Round.rounds} - Wins: #{human.wins} - Losses: #{computer.wins} - Ties: #{Round.ties}"
 end
 
 def play_again?
   begin
-    say "Do you want to play again? Press 'Y' for yes. Press 'N' for no."
+    say "Play next round? Press 'Y' for yes. Press 'N' for no."
     input = gets.chomp
     input = input.downcase
   end until %w(y yes n no).include?(input)
   %w(y yes).include?(input)
 end
 
+def show_bye
+  say "Thanks for playing!"
+end
+
 human = Player.new(get_name)
 computer = Player.new("Computer")
 show_intro
 
-loop do
-  Round.new
-  computer.choose_hand
-  human.choose_hand
-  Player.compare_hands(human, computer)
-  break if !play_again? || Player.five_rounds_won?(human, computer)
-end
+begin
+  play_round(human, computer)
+end until !play_again? || Round.five_rounds?
 
-puts "Thanks for playing!"
+Player.set_game_winner(human, computer)
+Player.show_game_winner(human, computer) if Player.game_winner
+show_bye
