@@ -1,9 +1,11 @@
+require "yaml"
+
 HANDS = { %w(rock r) => "Rock", %w(paper p) => "Paper", %w(scissors s) => "Scissors" }
 
-WINNING_HANDS = { "Rock" => "Scissors", "Paper" => "Rock", "Scissors" => "Paper"}
+WINNING_HANDS = { "Rock" => "Scissors", "Paper" => "Rock", "Scissors" => "Paper" }
 
 class Player
-  attr_accessor :wins, :winner
+  attr_accessor :wins
 
   attr_reader :hand, :name
 
@@ -17,21 +19,21 @@ class Player
   def self.compare_hands(human, computer)
     if human.hand == computer.hand
       Round.add_tie
-      self.show_round_winner(human, computer, "tie")
+      Round.round_winners << "tie"
     elsif WINNING_HANDS[human.hand] == computer.hand
       human.wins += 1
-      self.show_round_winner(human, computer, "human")
+      Round.round_winners << human.name
     else
       computer.wins += 1
-      self.show_round_winner(human, computer, "computer")
+      Round.round_winners << "Computer"
     end
   end
 
-  def self.show_round_winner(human, computer, winner)
-    case winner
+  def self.show_round_winner(human, computer)
+    case Round.round_winners[-1]
     when "tie"
       say "You both picked #{human.hand}. It's a tie!"
-    when "human"
+    when human.name
       say "#{human.name} picked #{human.hand}. Computer picked #{computer.hand}. You win!"
     else
       say "#{human.name} picked #{human.hand}. Computer picked #{computer.hand}. You lose!"
@@ -70,7 +72,7 @@ class Player
   end
 
   def list_hands
-    HANDS.values.each { | hand | say "Enter #{hand[0]} for #{hand}." }
+    HANDS.values.each { |hand| say "Enter #{hand[0]} for #{hand}." }
   end
 
   def validate_input
@@ -79,17 +81,18 @@ class Player
       input = gets.chomp
       input = input.downcase
     end until HANDS.keys.flatten.include?(input)
-      input
+    input
   end
 
   def match_input(input)
-    HANDS.keys.each { | set | @hand = HANDS[set] if set.include?(input) }
+    HANDS.keys.each { |set| @hand = HANDS[set] if set.include?(input) }
   end
 end
 
 class Round
   @@rounds = 0
   @@ties = 0
+  @@round_winners = []
 
   def initialize
     @@rounds += 1
@@ -107,6 +110,10 @@ class Round
     @@ties
   end
 
+  def self.round_winners
+    @@round_winners
+  end
+
   def self.five_rounds?
     @@rounds == 5
   end
@@ -116,7 +123,7 @@ def say(message)
   puts "--> #{message}"
 end
 
-def get_name
+def set_name
   say "What's your name?"
   gets.chomp
 end
@@ -130,6 +137,7 @@ def play_round(human, computer)
   computer.choose_hand
   human.choose_hand
   Player.compare_hands(human, computer)
+  Player.show_round_winner(human, computer)
   Player.show_score(human, computer)
 end
 
@@ -150,13 +158,13 @@ def show_bye
   say "Thanks for playing!"
 end
 
-human = Player.new(get_name)
+human = Player.new(set_name)
 computer = Player.new("Computer")
 show_intro
 
 begin
   play_round(human, computer)
-end until !play_again? || Round.five_rounds?
+end until Round.five_rounds? || !play_again?
 
 Player.set_game_winner(human, computer)
 Player.show_game_winner(human, computer) if Player.game_winner
