@@ -1,8 +1,8 @@
 require "yaml"
 
-HANDS = { %w(rock r) => "Rock", %w(paper p) => "Paper", %w(scissors s) => "Scissors" }
+HANDS = { %w(rock r) => "Rock", %w(paper p) => "Paper", %w(scissors sc) => "Scissors", %w(spock sp) => "Spock", %w(lizard l) => "Lizard" }
 
-LOSING_HANDS = { "Rock" => "Scissors", "Paper" => "Rock", "Scissors" => "Paper" }
+LOSING_HANDS = { "Rock" => %w(Scissors Lizard), "Paper" => %w(Spock Rock), "Scissors" => %w(Lizard Paper), "Lizard" => %w(Spock Paper), "Spock" => %w(Rock Scissors) }
 
 class Player
   attr_accessor :wins, :hand
@@ -33,7 +33,7 @@ class Human < Player
   end
 
   def match_hand(input)
-    HANDS.keys.each { |set| @hand = HANDS[set] if set.include?(input) }
+    HANDS.keys.each { |keys| @hand = HANDS[keys] if keys.include?(input) }
   end
 
   def choose_hand
@@ -42,7 +42,7 @@ class Human < Player
   end
 
   def list_hands
-    HANDS.values.each { |hand| puts "Enter #{hand[0]} for #{hand}." }
+    HANDS.each { |keys, hand| puts "Enter '#{keys[1].upcase}' for #{hand}." }
   end
 end
 
@@ -82,10 +82,6 @@ class Round
     @@round_winners
   end
 
-  def self.five_rounds?
-    @@rounds == 5
-  end
-
   def self.next_round?
     begin
       puts "Play next round? Press 'Y' for yes. Press 'N' for no."
@@ -107,7 +103,7 @@ class Game
   end
 
   def show_intro
-    puts "Let's play Rock-Paper-Scissors. Best of 5 wins the game!"
+    puts "Let's play Rock-Paper-Scissors-Lizard-Spock. Win 10 rounds to win the game!"
   end
 
   def play_round
@@ -122,7 +118,7 @@ class Game
     if human.hand == computer.hand
       Round.add_tie
       Round.round_winners << "tie"
-    elsif LOSING_HANDS[human.hand] == computer.hand
+    elsif LOSING_HANDS[human.hand].include?(computer.hand)
       human.wins += 1
       Round.round_winners << human.name
     else
@@ -146,10 +142,13 @@ class Game
     puts "Score - #{human.name}: #{human.wins} - Computer: #{computer.wins} - Ties: #{Round.ties}"
   end
 
+  def ten_points?
+    human.wins == 10 || computer.wins == 10
+  end
+
   def set_game_winner
-    @winner = human.name if human.wins > computer.wins
-    @winner = "Computer" if computer.wins > human.wins
-    @winner = "tie" if human.wins == computer.wins
+    @winner = human.name if human.wins == 10
+    @winner = "Computer" if computer.wins == 10
   end
 
   def show_game_winner
@@ -157,10 +156,8 @@ class Game
     case winner
     when human.name
       puts "You win!"
-    when "Computer"
-      puts "You lose!"
     else
-      puts "It's a tie!"
+      puts "You lose!"
     end
   end
 
@@ -175,11 +172,9 @@ game.show_intro
 begin
   Round.new
   game.play_round
-end until Round.five_rounds? || !Round.next_round?
+end until game.ten_points?
 
-if Round.five_rounds?
-  game.set_game_winner
-  game.show_game_winner
-end
+game.set_game_winner
+game.show_game_winner
 
 game.show_bye
