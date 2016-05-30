@@ -5,14 +5,19 @@ HANDS = { %w(rock r) => "Rock", %w(paper p) => "Paper", %w(scissors sc) => "Scis
 LOSING_HANDS = { "Rock" => %w(Scissors Lizard), "Paper" => %w(Spock Rock), "Scissors" => %w(Lizard Paper), "Lizard" => %w(Spock Paper), "Spock" => %w(Rock Scissors) }
 
 class Player
-  attr_accessor :wins, :hand
+  attr_accessor :wins, :hands
   attr_reader :name
+
+  def show_past_hands
+    puts "#{name}'s previous hands - #{hands}"
+  end
 end
 
 class Human < Player
   def initialize(name)
     @name = name
     @wins = 0
+    @hands = []
   end
 
   def self.enter_name
@@ -33,7 +38,7 @@ class Human < Player
   end
 
   def match_hand(input)
-    HANDS.keys.each { |keys| @hand = HANDS[keys] if keys.include?(input) }
+    HANDS.keys.each { |keys| hands << HANDS[keys] if keys.include?(input) }
   end
 
   def choose_hand
@@ -50,10 +55,11 @@ class Computer < Player
   def initialize
     @name = "Computer"
     @wins = 0
+    @hands = []
   end
 
   def choose_hand
-    @hand = HANDS.values.sample
+    hands << HANDS.values.sample
   end
 end
 
@@ -112,13 +118,15 @@ class Game
     compare_hands
     show_round_winner
     show_score
+    human.show_past_hands
+    computer.show_past_hands
   end
 
   def compare_hands
-    if human.hand == computer.hand
+    if human.hands[-1] == computer.hands[-1]
       Round.add_tie
       Round.round_winners << "tie"
-    elsif LOSING_HANDS[human.hand].include?(computer.hand)
+    elsif LOSING_HANDS[human.hands[-1]].include?(computer.hands[-1])
       human.wins += 1
       Round.round_winners << human.name
     else
@@ -130,11 +138,11 @@ class Game
   def show_round_winner
     case Round.round_winners[-1]
     when "tie"
-      puts "You both picked #{human.hand}. It's a tie!"
+      puts "You both picked #{human.hands[-1]}. It's a tie!"
     when human.name
-      puts "#{human.name} picked #{human.hand}. Computer picked #{computer.hand}. You win!"
+      puts "#{human.name} picked #{human.hands[-1]}. Computer picked #{computer.hands[-1]}. You win!"
     else
-      puts "#{human.name} picked #{human.hand}. Computer picked #{computer.hand}. You lose!"
+      puts "#{human.name} picked #{human.hands[-1]}. Computer picked #{computer.hands[-1]}. You lose!"
     end
   end
 
