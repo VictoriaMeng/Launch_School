@@ -4,6 +4,8 @@ HANDS = { %w(rock r) => "Rock", %w(paper p) => "Paper", %w(scissors sc) => "Scis
 
 LOSING_HANDS = { "Rock" => %w(Scissors Lizard), "Paper" => %w(Spock Rock), "Scissors" => %w(Lizard Paper), "Lizard" => %w(Spock Paper), "Spock" => %w(Rock Scissors) }
 
+WIN_REQUIREMENT = 10
+
 class Player
   attr_accessor :wins, :hands
   attr_reader :name
@@ -28,7 +30,7 @@ class Human < Player
     name
   end
 
-  def validate_hand
+  def validate_input
     begin
       list_hands
       input = gets.chomp
@@ -37,7 +39,7 @@ class Human < Player
     input
   end
 
-  def match_hand(input)
+  def match_input(input)
     HANDS.keys.each { |keys| hands << HANDS[keys] if keys.include?(input) }
   end
 
@@ -64,12 +66,15 @@ class Computer < Player
 end
 
 class Round
+  attr_accessor :winner
+
   @@rounds = 0
   @@ties = 0
-  @@round_winners = []
+  @@winners = []
 
   def initialize
     @@rounds += 1
+    @winner = nil
   end
 
   def self.add_tie
@@ -84,23 +89,13 @@ class Round
     @@ties
   end
 
-  def self.round_winners
-    @@round_winners
-  end
-
-  def self.next_round?
-    begin
-      puts "Play next round? Press 'Y' for yes. Press 'N' for no."
-      input = gets.chomp
-      input = input.downcase
-    end until %w(y yes n no).include?(input)
-    %w(y yes).include?(input)
+  def self.winners
+    @@winners
   end
 end
 
 class Game
-  attr_accessor :human, :computer
-
+  attr_accessor :human, :computer, :round
   attr_reader :winner
 
   def initialize
@@ -113,9 +108,11 @@ class Game
   end
 
   def play_round
+    @round = Round.new
     computer.choose_hand
     human.choose_hand
     compare_hands
+    adjust_score
     show_round_winner
     show_score
     human.show_past_hands
@@ -123,20 +120,26 @@ class Game
   end
 
   def compare_hands
-    if human.hands[-1] == computer.hands[-1]
+    round.winner = "tie" if human.hands[-1] == computer.hands[-1]
+    round.winner = human.name if LOSING_HANDS[human.hands[-1]].include?(computer.hands[-1])
+    round.winner = computer.name if LOSING_HANDS[computer.hands[-1]].include?(computer.hands[-1])
+  end
+
+  def adjust_score
+    Round.winners << round.winner
+
+    case round.winner
+    when "tie"
       Round.add_tie
-      Round.round_winners << "tie"
-    elsif LOSING_HANDS[human.hands[-1]].include?(computer.hands[-1])
+    when human.name
       human.wins += 1
-      Round.round_winners << human.name
     else
       computer.wins += 1
-      Round.round_winners << "Computer"
     end
   end
 
   def show_round_winner
-    case Round.round_winners[-1]
+    case round.winner
     when "tie"
       puts "You both picked #{human.hands[-1]}. It's a tie!"
     when human.name
@@ -151,15 +154,15 @@ class Game
   end
 
   def ten_points?
-    human.wins == 10 || computer.wins == 10
+    human.wins == WIN_REQUIREMENT || computer.wins == WIN_REQUIREMENT
   end
 
-  def set_game_winner
-    @winner = human.name if human.wins == 10
-    @winner = "Computer" if computer.wins == 10
+  def set_winner
+    @winner = human.name if human.wins == WIN_REQUIREMENT
+    @winner = "Computer" if computer.wins == WIN_REQUIREMENT
   end
 
-  def show_game_winner
+  def show_winner
     print "--> #{human.name} won #{human.wins} rounds. Computer won #{computer.wins} rounds. "
     case winner
     when human.name
@@ -172,17 +175,18 @@ class Game
   def show_bye
     puts "Thanks for playing!"
   end
+
+  def play
+    show_intro
+
+    begin
+      play_round
+    end until ten_points?
+
+    set_winner
+    show_winner
+    show_bye
+  end
 end
 
-game = Game.new
-game.show_intro
-
-begin
-  Round.new
-  game.play_round
-end until game.ten_points?
-
-game.set_game_winner
-game.show_game_winner
-
-game.show_bye
+game = Game.new.play
