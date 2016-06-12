@@ -1,52 +1,62 @@
 require "yaml"
 
-HANDS = { %w(rock r) => "Rock", %w(paper p) => "Paper", %w(scissors sc) => "Scissors", %w(spock sp) => "Spock", %w(lizard l) => "Lizard" }.freeze
+HANDS = { %w(rock r) => "Rock",
+          %w(paper p) => "Paper",
+          %w(scissors sc) => "Scissors",
+          %w(spock sp) => "Spock",
+          %w(lizard l) => "Lizard" }.freeze
 
-LOSING_HANDS = { "Rock" => %w(Scissors Lizard), "Paper" => %w(Spock Rock), "Scissors" => %w(Lizard Paper), "Lizard" => %w(Spock Paper), "Spock" => %w(Rock Scissors) }.freeze
+LOSING_HANDS = { "Rock" => %w(Scissors Lizard),
+                 "Paper" => %w(Spock Rock),
+                 "Scissors" => %w(Lizard Paper),
+                 "Lizard" => %w(Spock Paper),
+                 "Spock" => %w(Rock Scissors) }.freeze
 
 class Player
-  attr_accessor :wins, :hands
+  attr_accessor :wins
 
-  def show_past_hands
-    puts "#{name}'s previous hands - #{hands}"
+  def initialize
+    @wins = 0
   end
 end
 
 class Human < Player
-  attr_reader :name
+  attr_accessor :hands, :name
 
-  def initialize(name)
-    @name = name
-    @wins = 0
+  def setup
+    clear_hands
+    enter_name
+  end
+
+  def clear_hands
     @hands = []
   end
 
-  def self.enter_name
-    puts "What's your name?"
-    name = gets.chomp
+  def enter_name
+    input = ""
+    puts "What's your a name?"
     loop do
-      break if !name.empty?
+      input = gets.strip
+      break if !input.empty?
       puts "Please enter a name."
-      name = gets.chomp
     end
-    name
+    @name = input
   end
 
   def validate_input
-    list_options
-    input = gets.chomp
+    input = ""
     loop do
-      input = input.downcase
-      break if HANDS.keys.flatten.include?(input)
-      puts "#{input} isn't a valid hand."
       list_options
       input = gets.chomp
+      break if HANDS.keys.flatten.include?(input.downcase)
+      puts "#{input} isn't a valid hand."
     end
-    input
+    input.downcase
   end
 
   def match_hand(input)
     HANDS.keys.each { |keys| hands << HANDS[keys] if keys.include?(input) }
+    hands[-1]
   end
 
   def choose_hand
@@ -58,8 +68,12 @@ class Human < Player
     HANDS.each { |keys, hand| puts "Enter '#{keys[1].upcase}' for #{hand}." }
   end
 
+  def show_past_hands
+    puts "#{name}'s previous hands - #{hands}"
+  end
+
   def reset
-    @hands = []
+    clear_hands
     @wins = 0
   end
 end
@@ -67,47 +81,115 @@ end
 class Computer < Player
   ROBOTS = ["Glados", "R2D2", "Hal"].freeze
 
-  attr_accessor :name, :bad_hands
+  attr_accessor :ai
 
-  def initialize
-    @name = ROBOTS.sample
-    @wins = 0
-    @hands = []
-    @bad_hands = []
-    hand_choices
+  def random_ai
+    ai = ROBOTS.sample
+    case ai
+    when "Glados"
+      @ai = Glados.new
+    when "R2D2"
+      @ai = R2D2.new
+    when "Hal"
+      @ai = Hal.new
+    end
+    show_name
   end
 
   def show_name
-    puts "This round, your opponent is #{name}."
+    puts "This round, your opponent is #{ai.name}."
   end
 
-  def hand_choices
-    @hand_choices = %w(Rock) if name == "R2D2"
-    @hand_choices = %w(Scissors) * 5 + %w(Rock Lizard Spock Lizard Spock) if name == "Hal"
-    @hand_choices = HANDS.values if name == "Glados"
+  def show_past_hands
+    puts "#{ai.name}'s previous hands - #{ai.hands}"
+  end
+
+  def reset
+    @wins = 0
+  end
+end
+
+class AI
+  attr_accessor :name, :hands, :hand_choices
+
+  @@hands_to_avoid = []
+
+  def self.hands_to_avoid
+    @@hands_to_avoid
+  end
+
+  def analyze_losses(human_name)
+    @@hands_to_avoid = []
+    computer_losses = []
+
+    Round.winners.each_with_index do |winner, index|
+      computer_losses << hands[index] if winner == human_name
+    end
+
+    computer_losses.uniq.each do |hand|
+      if (computer_losses.count(hand) / Round.rounds) >= Game::LOSS_LIMIT
+        @@hands_to_avoid << hand
+      end
+    end
   end
 
   def choose_hand
     hands << @hand_choices.sample
   end
+end
 
-  def adjust_ai
-    main_hand = ""
-    loop do
-      main_hand = HANDS.values.sample
-      break if !bad_hands.include?(main_hand)
-    end
-    @hand_choices = [main_hand]
-    if name == "Hal"
-      @hand_choices *= 5
-      4.times { @hand_choices << HANDS.values.sample }
-    end
+class R2D2 < AI
+  def initialize
+    @name = "R2D2"
+    @hands = []
+    @hand_choices = adjust_ai
   end
 
-  def reset
+  def adjust_ai
+    hta = AI.hands_to_avoid
+    choices = []
+    loop do
+      choices = [HANDS.values.sample]
+      break if !hta.include?(choices[0])
+    end
+    choices
+  end
+end
+
+class Hal < AI
+  def initialize
+    @name = "Hal"
     @hands = []
-    @wins = 0
-    @name = Computer::ROBOTS.sample
+    @hand_choices = adjust_ai
+  end
+
+  def adjust_ai
+    hta = AI.hands_to_avoid
+    choices = []
+    loop do
+      choices = [HANDS.values.sample]
+      choices *= 5
+      5.times { choices << HANDS.values.sample }
+      break if choices.all? { |hand| !hta.include?(hand) }
+    end
+    choices
+  end
+end
+
+class Glados < AI
+  def initialize
+    @name = "Glados"
+    @hands = []
+    @hand_choices = HANDS.values
+  end
+
+  def cheat(human_hand)
+    computer_hand = ""
+    loop do
+      computer_hand = HANDS.values.sample
+      break if LOSING_HANDS[computer_hand].include?(human_hand)
+    end
+    hands[-1] = computer_hand
   end
 end
 
@@ -154,19 +236,28 @@ class Game
   attr_reader :winner
 
   def initialize
-    @human = Human.new(Human.enter_name)
+    @human = Human.new
     @computer = Computer.new
   end
 
+  def setup
+    show_intro
+    human.setup
+  end
+
   def show_intro
-    puts "Let's play Rock-Paper-Scissors-Lizard-Spock. Win 10 rounds to win the game!"
+    puts <<~INTRO
+      Welcome to Rock-Paper-Scissors-Lizard-Spock. \
+Win #{WIN_REQUIREMENT} rounds to win the game!
+    INTRO
   end
 
   def play_round
+    ai = computer.ai
     @round = Round.new
-    computer.choose_hand
-    human.choose_hand
-    cheat if computer.name == "Glados"
+    ai.choose_hand
+    human_hand = human.choose_hand
+    ai.cheat(human_hand) if ai.name == "Glados"
     compare_hands
     adjust_score
     show_round_winner
@@ -175,22 +266,21 @@ class Game
     computer.show_past_hands
   end
 
-  def cheat
-    loop do
-      computer.hands[-1] = HANDS.values.sample
-      break if LOSING_HANDS[computer.hands[-1]].include?(human.hands[-1])
-    end
-  end
-
   def compare_hands
-    round.winner = "tie" if human.hands[-1] == computer.hands[-1]
-    round.winner = human.name if LOSING_HANDS[human.hands[-1]].include?(computer.hands[-1])
-    round.winner = computer.name if LOSING_HANDS[computer.hands[-1]].include?(computer.hands[-1])
+    human_hand = human.hands[-1]
+    computer_hand = computer.ai.hands[-1]
+    round.winner = case
+                   when human_hand == computer_hand
+                     "tie"
+                   when LOSING_HANDS[human_hand].include?(computer_hand)
+                     human.name
+                   else
+                     computer.ai.name
+                   end
   end
 
   def adjust_score
     Round.winners << round.winner
-
     case round.winner
     when "tie"
       Round.add_tie
@@ -201,19 +291,43 @@ class Game
     end
   end
 
+  def round_tie_message
+    puts "You both picked #{human.hands[-1]}. It's a tie!"
+  end
+
+  def round_human_win_message
+    puts <<~HUMAN_WIN
+      #{human.name} picked #{human.hands[-1]}. \
+#{computer.ai.name} picked #{computer.ai.hands[-1]}. \
+You win!
+    HUMAN_WIN
+  end
+
+  def round_computer_win_message
+    puts <<~COMPUTER_WIN
+#{human.name} picked #{human.hands[-1]}. \
+#{computer.ai.name} picked #{computer.ai.hands[-1]}. \
+You lose!
+    COMPUTER_WIN
+  end
+
   def show_round_winner
     case round.winner
     when "tie"
-      puts "You both picked #{human.hands[-1]}. It's a tie!"
+      round_tie_message
     when human.name
-      puts "#{human.name} picked #{human.hands[-1]}. #{computer.name} picked #{computer.hands[-1]}. You win!"
+      round_human_win_message
     else
-      puts "#{human.name} picked #{human.hands[-1]}. #{computer.name} picked #{computer.hands[-1]}. You lose!"
+      round_computer_win_message
     end
   end
 
   def show_score
-    puts "Score - #{human.name}: #{human.wins} - #{computer.name}: #{computer.wins} - Ties: #{Round.ties}"
+    puts <<~SCORE
+      Score - #{human.name}: #{human.wins} - \
+#{computer.ai.name}: #{computer.wins} - \
+Ties: #{Round.ties}
+    SCORE
   end
 
   def win_condition?
@@ -221,28 +335,39 @@ class Game
   end
 
   def set_winner
-    @winner = human.name if human.wins == WIN_REQUIREMENT
-    @winner = computer.name if computer.wins == WIN_REQUIREMENT
+    @winner = case
+              when human.wins == WIN_REQUIREMENT
+                human.name
+              when computer.ai.name == WIN_REQUIREMENT
+                computer.ai.name
+              end
   end
 
   def show_winner
-    puts "#{human.name} won #{human.wins} rounds. #{computer.name} won #{computer.wins} rounds. "
-    case winner
-    when human.name
+    puts <<~FINAL_SCORE
+      #{human.name} won #{human.wins} rounds. \
+#{computer.ai.name} won #{computer.wins} rounds.
+    FINAL_SCORE
+    if winner == human.name
       puts "You win!"
     else
       puts "You lose!"
     end
   end
 
+  def set_show_winner
+    set_winner
+    show_winner
+  end
+
   def play_again?
+    input = ""
     puts "Would you like to play again? - Enter 'Y' for yes, 'N' for no."
-    input = gets.chomp
     loop do
+      input = gets.chomp
       input = input.downcase
       break if %w(y yes n no).include?(input)
       puts "Please enter 'y' or 'n'."
-      input = gets.chomp
     end
     %w(y yes).include?(input)
   end
@@ -253,39 +378,23 @@ class Game
     Round.reset
   end
 
-  def bad_hands
-    computer_losses = []
-    bad_hands = []
-    Round.winners.each_with_index do |winner, index|
-      computer_losses << computer.hands[index] if winner == human.name
-    end
-    computer_losses.uniq.each do |hand|
-      bad_hands << hand if (computer_losses.count(hand) / Round.rounds) >= LOSS_LIMIT
-    end
-    computer.bad_hands = bad_hands
-  end
-
   def show_bye
     puts "Thanks for playing!"
   end
 
   def play
-    show_intro
-
+    setup
     loop do
-      computer.show_name
+      computer.random_ai
       loop do
         play_round
         break if win_condition?
       end
-      set_winner
-      show_winner
+      set_show_winner
       break if !play_again?
-      bad_hands
+      computer.ai.analyze_losses(human.name)
       reset
-      computer.adjust_ai
     end
-
     show_bye
   end
 end
