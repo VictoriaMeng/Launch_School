@@ -110,28 +110,7 @@ class Computer < Player
 end
 
 class AI
-  attr_accessor :name, :hands, :hand_choices
-
-  @@hands_to_avoid = []
-
-  def self.hands_to_avoid
-    @@hands_to_avoid
-  end
-
-  def analyze_losses(human_name)
-    @@hands_to_avoid = []
-    computer_losses = []
-
-    Round.winners.each_with_index do |winner, index|
-      computer_losses << hands[index] if winner == human_name
-    end
-
-    computer_losses.uniq.each do |hand|
-      if (computer_losses.count(hand) / Round.rounds) >= Game::LOSS_LIMIT
-        @@hands_to_avoid << hand
-      end
-    end
-  end
+  attr_accessor :name, :hands, :hand_choices, :hands_to_avoid
 
   def choose_hand
     hands << @hand_choices.sample
@@ -142,15 +121,15 @@ class R2D2 < AI
   def initialize
     @name = "R2D2"
     @hands = []
+    @hands_to_avoid = []
     @hand_choices = adjust_ai
   end
 
   def adjust_ai
-    hta = AI.hands_to_avoid
     choices = []
     loop do
       choices = [HANDS.values.sample]
-      break if !hta.include?(choices[0])
+      break if !hands_to_avoid.include?(choices[0])
     end
     choices
   end
@@ -160,17 +139,18 @@ class Hal < AI
   def initialize
     @name = "Hal"
     @hands = []
+    @hands_to_avoid = []
     @hand_choices = adjust_ai
   end
 
   def adjust_ai
-    hta = AI.hands_to_avoid
+    hta = hands_to_avoid
     choices = []
     loop do
       choices = [HANDS.values.sample]
       choices *= 5
       5.times { choices << HANDS.values.sample }
-      break if choices.all? { |hand| !hta.include?(hand) }
+      break if choices.all? { |hand| !hands_to_avoid.include?(hand) }
     end
     choices
   end
@@ -181,6 +161,7 @@ class Glados < AI
     @name = "Glados"
     @hands = []
     @hand_choices = HANDS.values
+    @hands_to_avoid = []
   end
 
   def cheat(human_hand)
@@ -193,56 +174,31 @@ class Glados < AI
   end
 end
 
-class Round
-  attr_accessor :winner
-
-  @@rounds = 0
-  @@ties = 0
-  @@winners = []
-
-  def initialize
-    @@rounds += 1
-    @winner = nil
-  end
-
-  def self.add_tie
-    @@ties += 1
-  end
-
-  def self.rounds
-    @@rounds
-  end
-
-  def self.ties
-    @@ties
-  end
-
-  def self.winners
-    @@winners
-  end
-
-  def self.reset
-    @@rounds = 0
-    @@ties = 0
-    @@winners = []
-  end
-end
-
 class Game
   WIN_REQUIREMENT = 10
   LOSS_LIMIT = 0.66
 
-  attr_accessor :human, :computer, :round
-  attr_reader :winner
+  attr_accessor :human, :computer, :rounds, :round_winners
+  attr_reader :winner, :round_winner, :ties
 
   def initialize
     @human = Human.new
     @computer = Computer.new
+    @round_winners = []
+    @ties = 0
+    @rounds = 0
   end
 
   def setup
     show_intro
     human.setup
+  end
+
+  def clear_score
+    rounds = 0
+    round_winners = []
+    ties = 0
+    winner = ""
   end
 
   def show_intro
@@ -252,9 +208,17 @@ Win #{WIN_REQUIREMENT} rounds to win the game!
     INTRO
   end
 
+  def add_round
+    @rounds += 1
+  end
+
+  def add_tie
+    @ties += 1
+  end
+
   def play_round
     ai = computer.ai
-    @round = Round.new
+    add_round
     ai.choose_hand
     human_hand = human.choose_hand
     ai.cheat(human_hand) if ai.name == "Glados"
@@ -269,7 +233,7 @@ Win #{WIN_REQUIREMENT} rounds to win the game!
   def compare_hands
     human_hand = human.hands[-1]
     computer_hand = computer.ai.hands[-1]
-    round.winner = case
+    @round_winner = case
                    when human_hand == computer_hand
                      "tie"
                    when LOSING_HANDS[human_hand].include?(computer_hand)
@@ -280,10 +244,10 @@ Win #{WIN_REQUIREMENT} rounds to win the game!
   end
 
   def adjust_score
-    Round.winners << round.winner
-    case round.winner
+    round_winners << round_winner
+    case round_winner
     when "tie"
-      Round.add_tie
+      add_tie
     when human.name
       human.wins += 1
     else
@@ -312,7 +276,7 @@ You lose!
   end
 
   def show_round_winner
-    case round.winner
+    case round_winner
     when "tie"
       round_tie_message
     when human.name
@@ -326,7 +290,7 @@ You lose!
     puts <<~SCORE
       Score - #{human.name}: #{human.wins} - \
 #{computer.ai.name}: #{computer.wins} - \
-Ties: #{Round.ties}
+Ties: #{ties}
     SCORE
   end
 
@@ -372,10 +336,24 @@ Ties: #{Round.ties}
     %w(y yes).include?(input)
   end
 
+  def analyze_losses
+    computer_losses = []
+
+    round_winners.each_with_index do |winner, index|
+      computer_losses << computer.ai.hands[index] if winner == human.name
+    end
+
+    computer_losses.uniq.each do |hand|
+      if (computer_losses.count(hand) / rounds) >= LOSS_LIMIT
+        computer.ai.hands_to_avoid << hand
+      end
+    end
+  end
+
   def reset
+    clear_score
     human.reset
     computer.reset
-    Round.reset
   end
 
   def show_bye
@@ -392,7 +370,7 @@ Ties: #{Round.ties}
       end
       set_show_winner
       break if !play_again?
-      computer.ai.analyze_losses(human.name)
+      analyze_losses
       reset
     end
     show_bye
