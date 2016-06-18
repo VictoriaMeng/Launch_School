@@ -15,6 +15,11 @@ LOSING_HANDS = { "Rock" => %w(Scissors Lizard),
 class Player
   attr_accessor :wins, :name, :hands
 
+  def initialize
+    @wins = 0
+    @hands = []
+  end
+
   def show_past_hands
     puts "#{name}'s previous hands - #{hands}"
   end
@@ -24,9 +29,8 @@ class Human < Player
   attr_accessor :hands, :name
 
   def initialize
+    super
     @name = enter_name
-    @wins = 0
-    @hands = []
   end
 
   def enter_name
@@ -34,7 +38,7 @@ class Human < Player
     puts "What's your a name?"
     loop do
       input = gets.strip
-      break if !input.empty?
+      break unless input.empty?
       puts "Please enter a name."
     end
     input
@@ -80,6 +84,11 @@ class Computer < Player
 
   ROBOTS = ["Glados", "R2D2", "Hal"].freeze
 
+  def initialize
+    super
+    @losing_hands = []
+  end
+
   def self.random_ai
     ai = ROBOTS.sample
     case ai
@@ -121,10 +130,8 @@ end
 
 class R2D2 < Computer
   def initialize
+    super
     @name = "R2D2"
-    @hands = []
-    @wins = 0
-    @losing_hands = []
     @hand_choices = %w(Rock)
   end
 
@@ -132,7 +139,7 @@ class R2D2 < Computer
     choices = []
     loop do
       choices = [HANDS.values.sample]
-      break if !hands_to_avoid.include?(choices[0])
+      break unless hands_to_avoid.include?(choices[0])
     end
     @hand_choices = choices
   end
@@ -140,10 +147,8 @@ end
 
 class Hal < Computer
   def initialize
+    super
     @name = "Hal"
-    @hands = []
-    @wins = 0
-    @losing_hands = []
     @hand_choices = %w(Scissors) * 5 + %w(Lizard Spock Lizard Spock Rock)
   end
 
@@ -161,10 +166,8 @@ end
 
 class Glados < Computer
   def initialize
+    super
     @name = "Glados"
-    @hands = []
-    @wins = 0
-    @losing_hands = []
     @hand_choices = HANDS.values
   end
 
@@ -359,7 +362,7 @@ Ties: #{ties}
         break if win_condition?
       end
       set_show_winner
-      break if !play_again?
+      break unless play_again?
       new_game_setup
     end
     show_bye
