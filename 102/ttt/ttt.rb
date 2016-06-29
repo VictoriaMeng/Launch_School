@@ -1,5 +1,5 @@
 class Board
-  ROWS = [[1, 2, 3], 
+  ROWS = [[1, 2, 3],
           [4, 5, 6],
           [7, 8, 9],
           [1, 4, 7],
@@ -61,7 +61,9 @@ class Board
   def winning_symbol
     ROWS.each do |row|
       Square::SYMBOLS.each do |symbol|
-        return symbol if squares.values_at(*row).map(&:symbol).count(symbol) == 3
+        if squares.values_at(*row).map(&:symbol).count(symbol) == 3
+          return symbol 
+        end
       end
     end
     nil   
@@ -75,7 +77,6 @@ class Board
     end
     nil
   end
-
 end
 
 class Square
@@ -151,7 +152,6 @@ class Human < Player
     end
     board[input.to_i] = symbol
   end
-
 end
 
 class Computer < Player
@@ -228,6 +228,7 @@ class Game
       break unless play_again?
       reset
     end
+    show_bye
   end
 
   private
@@ -276,6 +277,10 @@ class Game
     computer.assign_order(human.order)
     board.reset
   end
+
+  def show_bye
+    puts "Thanks for playing!"
+  end
 end
 
-game = Game.new.play
+Game.new.play
