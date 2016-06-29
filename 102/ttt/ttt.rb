@@ -16,11 +16,10 @@ class Board
   end
 
   def reset
-    (1..9).each { |number| @squares[number] = Square.new(number.to_s) }
+    (1..9).each { |number| squares[number] = Square.new(number.to_s) }
   end
 
   def display
-    system "clear"
     puts "       |       |      "
     puts "   #{squares[1]}   |   #{squares[2]}   |   #{squares[3]}   "
     puts "       |       |      "
@@ -34,16 +33,25 @@ class Board
     puts "       |       |      "
   end
 
+  def clear
+    system "clear"
+  end
+
+  def display_and_clear
+    clear
+    display
+  end
+
   def []=(square, symbol)
     squares[square].symbol = symbol
   end
 
   def blank_squares
-    squares.select { |square, symbol| squares[square].empty? }.keys
+    squares.select { |square, _| squares[square].empty? }.keys
   end
 
   def full?
-    squares.none? { |square, symbol| squares[square].empty? }
+    squares.none? { |square, _| squares[square].empty? }
   end
 
   def show_blank_squares
@@ -53,11 +61,21 @@ class Board
   def winning_symbol
     ROWS.each do |row|
       Square::SYMBOLS.each do |symbol|
-        return symbol if squares.values_at(*row).count(symbol) == 3
+        return symbol if squares.values_at(*row).map(&:symbol).count(symbol) == 3
       end
     end
     nil   
   end
+
+  def two_in_row(symbol)
+    ROWS.each do |row|
+      if squares.values_at(*row).map(&:symbol).count(symbol) == 2
+        row.each { |square| return square if squares[square].empty? }
+      end
+    end
+    nil
+  end
+
 end
 
 class Square
@@ -131,7 +149,7 @@ class Human < Player
       puts "#{input} isn't a valid square." unless valid
       puts "#{input} is full." unless empty
     end
-    board.squares[input.to_i] = symbol
+    board[input.to_i] = symbol
   end
 
 end
@@ -157,8 +175,27 @@ class Computer < Player
   end
 
   def place_symbol(board)
+    if board.two_in_row(symbol)
+      fill_winning_row(board)
+    elsif board.squares[5].empty?
+      fill_center_square(board)
+    else
+      fill_random_square(board) 
+    end
+  end
+
+  def fill_center_square(board)
+    board[5] = symbol
+  end
+
+  def fill_winning_row(board)
+    winning_square = board.two_in_row(symbol)
+    board[winning_square] = symbol
+  end
+
+  def fill_random_square(board)
     square = board.blank_squares.sample
-    board.squares[square] = symbol
+    board[square] = symbol
     puts "Computer picked #{square}."
   end
 end
@@ -172,12 +209,35 @@ class Game
     @computer = Computer.new
   end
 
+  def play
+    setup(human)
+    loop do
+      loop do
+        player_turn(1, board)
+        break if end_conditions
+        player_turn(2, board)
+        break if end_conditions
+      end
+      result
+      break unless play_again?
+      reset
+    end
+  end
+
+  private
+
+  def setup(human)
+    computer.assign_stats(human)
+    board.display
+  end
+
   def player_turn(order, board)
     if human.order == order
       human.place_symbol(board)
     else
       computer.place_symbol(board)
     end
+    board.display_and_clear
   end
 
   def end_conditions
@@ -210,24 +270,6 @@ class Game
     computer.assign_order(human.order)
     board.reset
   end
-
-  def play
-    computer.assign_stats(human)
-    loop do
-      loop do
-        board.display
-        player_turn(1, board)
-        break if end_conditions
-        board.display
-        player_turn(2, board)
-        break if end_conditions
-      end
-      result
-      break unless play_again?
-      reset
-    end
-  end
-
 end
 
 game = Game.new.play
