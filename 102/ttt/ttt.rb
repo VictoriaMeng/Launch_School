@@ -6,7 +6,7 @@ class Board
           [2, 5, 8],
           [3, 6, 9],
           [1, 5, 9],
-          [3, 5, 7]].freeze
+          [3, 5, 7]].map { |row| row.map(&:to_s) }.freeze
 
   attr_accessor :squares
 
@@ -16,20 +16,20 @@ class Board
   end
 
   def reset
-    (1..9).each { |number| squares[number] = Square.new(number.to_s) }
+    ("1".."9").to_a.each { |number| squares[number] = Square.new(number) }
   end
 
   def display
     puts "       |       |      "
-    puts "   #{squares[1]}   |   #{squares[2]}   |   #{squares[3]}   "
+    puts "   #{squares["1"]}   |   #{squares["2"]}   |   #{squares["3"]}   "
     puts "       |       |      "
     puts "----------------------"
     puts "       |       |      "
-    puts "   #{squares[4]}   |   #{squares[5]}   |   #{squares[6]}   "
+    puts "   #{squares["4"]}   |   #{squares["5"]}   |   #{squares["6"]}   "
     puts "       |       |      "
     puts "----------------------"
     puts "       |       |      "
-    puts "   #{squares[7]}   |   #{squares[8]}   |   #{squares[9]}   "
+    puts "   #{squares["7"]}   |   #{squares["8"]}   |   #{squares["9"]}   "
     puts "       |       |      "
   end
 
@@ -145,12 +145,12 @@ class Human < Player
       board.show_blank_squares
       input = gets.strip
       valid = Square.valid?(input)
-      empty = board.blank_squares.include?(input.to_i)
+      empty = board.blank_squares.include?(input)
       break if valid && empty
       puts "#{input} isn't a valid square." unless valid
       puts "#{input} is full." unless empty
     end
-    board[input.to_i] = symbol
+    board[input] = symbol
   end
 end
 
@@ -177,7 +177,7 @@ class Computer < Player
   def place_symbol(board)
     if board.two_in_row(symbol)
       fill_winning_row(board)
-    elsif board.squares[5].empty?
+    elsif board.squares["5"].empty?
       fill_center_square(board)
     else
       fill_random_square(board)
@@ -185,8 +185,8 @@ class Computer < Player
   end
 
   def fill_center_square(board)
-    board[5] = symbol
-    print_move(5)
+    board["5"] = symbol
+    print_move("5")
   end
 
   def fill_winning_row(board)
