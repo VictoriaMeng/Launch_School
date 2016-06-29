@@ -62,11 +62,11 @@ class Board
     ROWS.each do |row|
       Square::SYMBOLS.each do |symbol|
         if squares.values_at(*row).map(&:symbol).count(symbol) == 3
-          return symbol 
+          return symbol
         end
       end
     end
-    nil   
+    nil
   end
 
   def two_in_row(symbol)
@@ -180,7 +180,7 @@ class Computer < Player
     elsif board.squares[5].empty?
       fill_center_square(board)
     else
-      fill_random_square(board) 
+      fill_random_square(board)
     end
   end
 
@@ -253,11 +253,11 @@ class Game
 
   def result
     if human.symbol == board.winning_symbol
-      puts "You won!" 
+      puts "You won!"
     elsif computer.symbol == board.winning_symbol
       puts "You lost!"
     else
-      puts "It's a tie." 
+      puts "It's a tie."
     end
   end
 
