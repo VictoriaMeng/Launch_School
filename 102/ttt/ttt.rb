@@ -186,17 +186,23 @@ class Computer < Player
 
   def fill_center_square(board)
     board[5] = symbol
+    print_move(5)
   end
 
   def fill_winning_row(board)
     winning_square = board.two_in_row(symbol)
     board[winning_square] = symbol
+    print_move(winning_square)
   end
 
   def fill_random_square(board)
     square = board.blank_squares.sample
     board[square] = symbol
-    puts "Computer picked #{square}."
+    print_move(square)
+  end
+
+  def print_move(square)
+    puts "Computer picked #{square}"
   end
 end
 
