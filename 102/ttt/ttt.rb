@@ -267,7 +267,7 @@ class Game
     loop do
       input = gets.strip
       input = input.downcase
-      break unless %w(y yes n no).include?(input)
+      break if %w(y yes n no).include?(input)
     end
     %w(y yes).include?(input)
   end
@@ -276,6 +276,7 @@ class Game
     human.random_order
     computer.assign_order(human.order)
     board.reset
+    board.display_and_clear
   end
 
   def show_bye
