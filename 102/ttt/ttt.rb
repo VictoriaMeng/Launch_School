@@ -107,11 +107,20 @@ class Square
 end
 
 class Player
-  attr_accessor :symbol, :order, :name
+  attr_accessor :symbol, :order, :name, :wins
+
+  def initialize
+    @wins = 0
+  end
+
+  def score_text
+    "#{name}: #{wins}"
+  end
 end
 
 class Human < Player
   def initialize
+    super
     @name = enter_name
     @symbol = pick_symbol
     random_order
@@ -129,6 +138,7 @@ class Human < Player
       break unless input.empty?
       puts "Please enter a name."
     end
+    input
   end
 
   def pick_symbol
@@ -157,10 +167,16 @@ class Human < Player
     end
     board[input] = symbol
   end
+
+  def reset
+    @wins = 0
+    random_order
+  end
 end
 
 class Computer < Player
   def initialize
+    super
     @name = "Computer"
   end
 
@@ -220,29 +236,35 @@ class Computer < Player
   end
 
   def print_move(square)
-    puts "Computer picked #{square}"
+    puts "#{name} picked #{square}"
+  end
+
+  def reset(human)
+    @wins = 0
+    assign_order(human.order)
   end
 end
 
 class Game
-  attr_accessor :board, :human, :computer
+  WIN_REQUIREMENT = 5
+
+  attr_accessor :board, :human, :computer, :ties
 
   def initialize
     @board = Board.new
     @human = Human.new
     @computer = Computer.new
+    @ties = 0
   end
 
   def play
     setup
     loop do
       loop do
-        player_turn(1, board)
-        break if end_conditions
-        player_turn(2, board)
-        break if end_conditions
+        play_match
+        break if winner
       end
-      result
+      announce_winner
       break unless play_again?
       reset
     end
@@ -256,6 +278,21 @@ class Game
     board.display
   end
 
+  def play_match
+    loop do
+      player_turn(1, board)
+      break if match_end_conditions
+      player_turn(2, board)
+      break if match_end_conditions
+    end
+    match_result
+    pause_between_match unless winner
+  end
+
+  def show_score
+    puts "Score - #{human.score_text} - #{computer.score_text} - Ties: #{ties}"
+  end
+
   def player_turn(order, board)
     if human.order == order
       human.place_symbol(board)
@@ -265,18 +302,83 @@ class Game
     board.display_and_clear
   end
 
-  def end_conditions
+  def match_end_conditions
     board.winning_symbol || board.full?
   end
 
-  def result
+  def match_result
     if human.symbol == board.winning_symbol
-      puts "You won!"
+      human_match_win
     elsif computer.symbol == board.winning_symbol
-      puts "You lost!"
+      computer_match_win
     else
-      puts "It's a tie."
+      tie
     end
+    show_score
+  end
+
+  def human_match_win
+    human.wins += 1
+    puts "You won the match!"
+  end
+
+  def computer_match_win
+    computer.wins += 1
+    puts "You lost the match!"
+  end
+
+  def tie
+    @ties += 1
+    puts "This match is a tie!"
+  end
+
+  def pause_between_match
+    show_current_lead
+    gets.chomp
+    reset_match
+  end
+
+  def show_current_lead
+    lead = current_lead
+    puts "You are currently tied - #{next_match_prompt}" if lead == "tie"
+    puts "#{lead} is in the lead. - #{next_match_prompt}" if lead != "tie"
+  end
+
+  def current_lead
+    if human.wins == computer.wins
+      "tie"
+    else
+      human.wins > computer.wins ? human.name : computer.name
+    end
+  end
+
+  def next_match_prompt
+    "Hit 'enter' to move onto the next match."
+  end
+
+  def reset_match
+    human.random_order
+    computer.assign_order(human.order)
+    board.reset
+    board.display_and_clear
+  end
+
+  def winner
+    return human if human.wins == WIN_REQUIREMENT
+    return computer if computer.wins == WIN_REQUIREMENT
+  end
+
+  def human_win_text
+    "#{human.name} won #{WIN_REQUIREMENT} rounds. - You win!"
+  end
+
+  def computer_win_text
+    "#{computer.name} won #{WIN_REQUIREMENT} rounds. - You lost!"
+  end
+
+  def announce_winner
+    puts human_win_text if winner == human
+    puts computer_win_text if winner == computer
   end
 
   def play_again?
@@ -286,13 +388,14 @@ class Game
       input = gets.strip
       input = input.downcase
       break if %w(y yes n no).include?(input)
+      puts "Please enter 'y' for yes, 'n' for no."
     end
     %w(y yes).include?(input)
   end
 
   def reset
-    human.random_order
-    computer.assign_order(human.order)
+    human.reset
+    computer.reset(human)
     board.reset
     board.display_and_clear
   end
