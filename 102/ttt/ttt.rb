@@ -54,8 +54,13 @@ class Board
     squares.none? { |square, _| squares[square].empty? }
   end
 
+  def join_or(squares, delimiter=", ", word="or")
+    squares[-1] = "#{word} #{squares.last}" if squares.size > 1
+    squares.join(delimiter)
+  end
+
   def show_blank_squares
-    puts "Empty squares - #{blank_squares}"
+    puts "Empty squares: #{join_or(blank_squares)}"
   end
 
   def winning_symbol
@@ -174,9 +179,16 @@ class Computer < Player
     @order = 2 if human_order == 1
   end
 
+  def human_symbol
+    return "X" if symbol == "O"
+    return "O" if symbol == "X"
+  end
+
   def place_symbol(board)
     if board.two_in_row(symbol)
       fill_winning_row(board)
+    elsif board.two_in_row(human_symbol)
+      block_human_win(board)
     elsif board.squares["5"].empty?
       fill_center_square(board)
     else
@@ -193,6 +205,12 @@ class Computer < Player
     winning_square = board.two_in_row(symbol)
     board[winning_square] = symbol
     print_move(winning_square)
+  end
+
+  def block_human_win(board)
+    square = board.two_in_row(human_symbol)
+    board[square] = symbol
+    print_move(square)
   end
 
   def fill_random_square(board)
@@ -285,3 +303,4 @@ class Game
 end
 
 Game.new.play
+
