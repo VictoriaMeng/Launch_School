@@ -21,15 +21,15 @@ class Board
 
   def display
     puts "       |       |      "
-    puts "   #{squares["1"]}   |   #{squares["2"]}   |   #{squares["3"]}   "
+    puts "   #{squares['1']}   |   #{squares['2']}   |   #{squares['3']}   "
     puts "       |       |      "
     puts "----------------------"
     puts "       |       |      "
-    puts "   #{squares["4"]}   |   #{squares["5"]}   |   #{squares["6"]}   "
+    puts "   #{squares['4']}   |   #{squares['5']}   |   #{squares['6']}   "
     puts "       |       |      "
     puts "----------------------"
     puts "       |       |      "
-    puts "   #{squares["7"]}   |   #{squares["8"]}   |   #{squares["9"]}   "
+    puts "   #{squares['7']}   |   #{squares['8']}   |   #{squares['9']}   "
     puts "       |       |      "
   end
 
@@ -234,7 +234,7 @@ class Game
   end
 
   def play
-    setup(human)
+    setup
     loop do
       loop do
         player_turn(1, board)
@@ -251,7 +251,7 @@ class Game
 
   private
 
-  def setup(human)
+  def setup
     computer.assign_stats(human)
     board.display
   end
@@ -303,4 +303,3 @@ class Game
 end
 
 Game.new.play
-
