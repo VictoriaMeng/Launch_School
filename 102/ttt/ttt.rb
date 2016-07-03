@@ -102,7 +102,7 @@ class Square
   end
 
   def empty?
-    ("1".."9").cover?(symbol)
+    Square.valid?(symbol)
   end
 end
 
@@ -160,10 +160,10 @@ class Human < Player
       board.show_blank_squares
       input = gets.strip
       valid = Square.valid?(input)
-      empty = board.blank_squares.include?(input)
+      empty = input.empty?
       break if valid && empty
       puts "#{input} isn't a valid square." unless valid
-      puts "#{input} is full." unless empty
+      puts "#{input} is full." if valid && !empty
     end
     board[input] = symbol
   end
