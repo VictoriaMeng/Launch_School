@@ -160,7 +160,7 @@ class Human < Player
       board.show_blank_squares
       input = gets.strip
       valid = Square.valid?(input)
-      empty = input.empty?
+      empty = board.blank_squares.include?(input)
       break if valid && empty
       puts "#{input} isn't a valid square." unless valid
       puts "#{input} is full." if valid && !empty
@@ -202,9 +202,9 @@ class Computer < Player
 
   def place_symbol(board)
     if board.two_in_row(symbol)
-      fill_winning_row(board)
+      completing_row(board, symbol)
     elsif board.two_in_row(human_symbol)
-      block_human_win(board)
+      completing_row(board, human_symbol)
     elsif board.squares["5"].empty?
       fill_center_square(board)
     else
@@ -217,16 +217,10 @@ class Computer < Player
     print_move("5")
   end
 
-  def fill_winning_row(board)
-    winning_square = board.two_in_row(symbol)
+  def completing_row(board, marker)
+    winning_square = board.two_in_row(marker)
     board[winning_square] = symbol
     print_move(winning_square)
-  end
-
-  def block_human_win(board)
-    square = board.two_in_row(human_symbol)
-    board[square] = symbol
-    print_move(square)
   end
 
   def fill_random_square(board)
@@ -260,10 +254,7 @@ class Game
   def play
     setup
     loop do
-      loop do
-        play_match
-        break if winner
-      end
+      play_match until winner
       announce_winner
       break unless play_again?
       reset
