@@ -107,7 +107,7 @@ class Square
 end
 
 class Player
-  attr_accessor :symbol, :order, :name, :wins
+  attr_accessor :symbol, :name, :wins
 
   def initialize
     @wins = 0
@@ -123,11 +123,6 @@ class Human < Player
     super
     @name = enter_name
     @symbol = pick_symbol
-    random_order
-  end
-
-  def random_order
-    @order = [1, 2].sample
   end
 
   def enter_name
@@ -170,7 +165,6 @@ class Human < Player
 
   def reset
     @wins = 0
-    random_order
   end
 end
 
@@ -180,19 +174,9 @@ class Computer < Player
     @name = "Computer"
   end
 
-  def assign_stats(human)
-    assign_symbol(human.symbol)
-    assign_order(human.order)
-  end
-
   def assign_symbol(human_symbol)
     @symbol = "O" if human_symbol == "X"
     @symbol = "X" if human_symbol == "O"
-  end
-
-  def assign_order(human_order)
-    @order = 1 if human_order == 2
-    @order = 2 if human_order == 1
   end
 
   def human_symbol
@@ -235,14 +219,13 @@ class Computer < Player
 
   def reset(human)
     @wins = 0
-    assign_order(human.order)
   end
 end
 
 class Game
   WIN_REQUIREMENT = 5
 
-  attr_accessor :board, :human, :computer, :ties
+  attr_accessor :board, :player_1, :player_2, :ties, :human, :computer
 
   def initialize
     @board = Board.new
@@ -264,16 +247,36 @@ class Game
 
   private
 
+  def random_order
+    human_order = [1, 2].sample
+    if human_order == 1
+      @player_1 = @human
+      @player_2 = @computer
+    else
+      @player_1 = @computer
+      @player_2 = @human
+    end
+  end
+
+  def player_1?(player)
+    player_1 == player
+  end
+
+  def player_2?(player)
+    player_2 == player
+  end
+
   def setup
-    computer.assign_stats(human)
+    computer.assign_symbol(human.symbol)
+    random_order
     board.display
   end
 
   def play_match
     loop do
-      player_turn(1, board)
+      player_1_turn(board)
       break if match_end_conditions
-      player_turn(2, board)
+      player_2_turn(board)
       break if match_end_conditions
     end
     match_result
@@ -284,12 +287,15 @@ class Game
     puts "Score - #{human.score_text} - #{computer.score_text} - Ties: #{ties}"
   end
 
-  def player_turn(order, board)
-    if human.order == order
-      human.place_symbol(board)
-    else
-      computer.place_symbol(board)
-    end
+  def player_1_turn(board)
+    human.place_symbol(board) if player_1?(human)
+    computer.place_symbol(board) if player_1?(computer)
+    board.display_and_clear
+  end
+
+  def player_2_turn(board)
+    human.place_symbol(board) if player_2?(human)
+    computer.place_symbol(board) if player_2?(computer)
     board.display_and_clear
   end
 
@@ -348,8 +354,7 @@ class Game
   end
 
   def reset_match
-    human.random_order
-    computer.assign_order(human.order)
+    random_order
     board.reset
     board.display_and_clear
   end
