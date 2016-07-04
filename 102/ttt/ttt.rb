@@ -221,7 +221,7 @@ end
 class Game
   WIN_REQUIREMENT = 5
 
-  attr_accessor :board, :player_1, :player_2, :ties, :human, :computer
+  attr_accessor :board, :player_1, :player_2, :ties, :human, :computer, :current_player
 
   def initialize
     @board = Board.new
@@ -245,21 +245,20 @@ class Game
 
   def random_order
     human_order = [1, 2].sample
-    if human_order == 1
-      @player_1 = @human
-      @player_2 = @computer
+    @current_player = @human if human_order == 1
+    @current_player = @computer if human_order == 2
+  end
+
+  def current_player?(player)
+    current_player == player
+  end
+
+  def switch_player
+    if current_player?(human)
+      @current_player = @computer
     else
-      @player_1 = @computer
-      @player_2 = @human
+      @current_player = @human
     end
-  end
-
-  def player_1?(player)
-    player_1 == player
-  end
-
-  def player_2?(player)
-    player_2 == player
   end
 
   def setup
@@ -269,12 +268,7 @@ class Game
   end
 
   def play_match
-    loop do
-      player_1_turn(board)
-      break if match_end_conditions
-      player_2_turn(board)
-      break if match_end_conditions
-    end
+    play_turn(board) until match_end_conditions
     match_result
     pause_between_match unless winner
   end
@@ -283,16 +277,11 @@ class Game
     puts "Score - #{human.score_text} - #{computer.score_text} - Ties: #{ties}"
   end
 
-  def player_1_turn(board)
-    human.place_symbol(board) if player_1?(human)
-    computer.place_symbol(board) if player_1?(computer)
+  def play_turn(board)
+    human.place_symbol(board) if current_player?(human)
+    computer.place_symbol(board) if current_player?(computer)
     board.display_and_clear
-  end
-
-  def player_2_turn(board)
-    human.place_symbol(board) if player_2?(human)
-    computer.place_symbol(board) if player_2?(computer)
-    board.display_and_clear
+    switch_player
   end
 
   def match_end_conditions
