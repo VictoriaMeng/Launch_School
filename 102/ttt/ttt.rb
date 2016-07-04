@@ -116,6 +116,10 @@ class Player
   def score_text
     "#{name}: #{wins}"
   end
+
+  def reset
+    @wins = 0
+  end
 end
 
 class Human < Player
@@ -161,10 +165,6 @@ class Human < Player
       puts "#{input} is full." if valid && !empty
     end
     board[input] = symbol
-  end
-
-  def reset
-    @wins = 0
   end
 end
 
@@ -215,10 +215,6 @@ class Computer < Player
 
   def print_move(square)
     puts "#{name} picked #{square}"
-  end
-
-  def reset(human)
-    @wins = 0
   end
 end
 
@@ -391,7 +387,7 @@ class Game
 
   def reset
     human.reset
-    computer.reset(human)
+    computer.reset
     board.reset
     board.display_and_clear
   end
