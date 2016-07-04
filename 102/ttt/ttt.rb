@@ -254,8 +254,7 @@ class Game
   end
 
   def switch_player
-    return @current_player = @computer if current_player?(human)
-    @current_player = @human
+    @current_player = current_player?(human) ? @computer : @human
   end
 
   def setup
