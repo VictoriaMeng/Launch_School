@@ -1,28 +1,28 @@
 class Player
-  attr_accessor :hand
+  attr_accessor :hand, :name
 
   def initialize(deck)
+    reset(deck)
+  end
+
+  def reset(deck)
     @hand = Hand.new(deck)
+  end
+
+  def display_hand
+    puts "#{name}'s Hand - #{hand.text}"
+  end
+
+  def hit(deck)
+    hand.draw(deck)
   end
 
   def blackjack?
     hand.blackjack?
   end
 
-  def harden
-    hand.harden
-  end
-
   def value
     hand.value
-  end
-
-  def display
-    hand.display
-  end
-
-  def hit(deck)
-    hand.draw(deck)
   end
 
   def soft?
@@ -40,16 +40,30 @@ class Player
   def bust?
     hard? && over_21?
   end
-
 end
 
 class Human < Player
+  def initialize(deck)
+    super
+    @name = enter_name
+  end
+
+  def enter_name
+    input = ""
+    puts "What's your name?"
+    loop do
+      input = gets.strip
+      break unless input.empty?
+      puts "Please enter your name."
+    end
+    input
+  end
+
   def turn(deck)
     loop do
-      display
+      display_hand
       break if blackjack?
       action = choose_action(deck)
-      hand.harden
       break if turn_end(action)
     end
   end
@@ -77,12 +91,21 @@ class Human < Player
   def turn_end(action)
     bust? || action == "stand"
   end
+
+  def skip_to_result?
+    blackjack? || bust?
+  end
 end
 
 class Computer < Player
+  def initialize(deck)
+    super
+    @name = "Dealer"
+  end
+
   def turn(deck)
     loop do
-      display
+      display_hand
       break if blackjack? || stand?
       hit(deck)
     end
@@ -94,6 +117,10 @@ class Computer < Player
 
   def stand?
     value > 16
+  end
+
+  def show_one_card
+    puts "#{name} Card - '#{hand.card_list[0]}'"
   end
 
 end
@@ -126,6 +153,10 @@ class Card
     @value = 1
   end
 
+  def ace?
+    rank.include?("Ace")
+  end
+
   def soft_ace?
     value == 11
   end
@@ -141,8 +172,8 @@ class Hand
     2.times { draw(deck) }
   end
 
-  def display
-    puts "Cards - #{card_list.join(", ")} - Total: #{value}"
+  def text
+    "#{card_list.join(", ")} - Total: #{value}"
   end
 
   def card_list
@@ -153,12 +184,10 @@ class Hand
 
   def draw(deck)
     card = deck.random_card
+    card.harden_ace if harden_ace?(card)
     @cards << card
     @value += card.value
-  end
-
-  def count_soft_aces
-    cards.select { |card| card.soft_ace? }.count
+    harden
   end
 
   def harden
@@ -167,6 +196,10 @@ class Hand
       card.harden_ace if card.soft_ace?
       @value -= 10
     end
+  end
+
+  def harden_ace?(card)
+    card.ace? && value > 10
   end
 
   def blackjack?
@@ -195,10 +228,14 @@ class Deck
 
   def initialize
     @cards = []
-    full_deck
+    reset
   end
 
-  def full_deck
+  def reset
+    8.times { fifty_two_cards }
+  end
+
+  def fifty_two_cards
     Card::RANK_VALUES.each do |rank, _|
       Card::SUITS.each { |suit| @cards << Card.new(rank, suit) }
     end
@@ -219,10 +256,18 @@ class Game
   end
 
   def play
-    human.turn(deck)
-    computer.turn(deck)
-    result
+    loop do
+      computer.show_one_card
+      human.turn(deck)
+      computer.turn(deck) unless human.skip_to_result?
+      result
+      break unless play_again?
+      reset(deck)
+    end
+    show_bye
   end
+
+  private
 
   def result
     if blackjack?
@@ -252,12 +297,13 @@ class Game
     elsif human.blackjack?
       puts "You got blackjack! You win!"
     else
-      puts "Computer got blackjack! You win!"
+      puts "#{computer.name} got blackjack! You win!"
     end
   end
 
   def bust_result
-    result = computer.bust? ? "You busted! You lose!" : "Computer busted! You win!"
+    dealer = computer.name
+    result = human.bust? ? "You busted! You lose!" : "#{dealer} busted! You win!"
     puts result
   end
 
@@ -266,9 +312,30 @@ class Game
     computer_value = computer.hand.value
     puts "You win!" if human_value > computer_value
     puts "You lose!" if computer_value > human_value
-    puts "Dealer wins ties! You lose!" if human_value == computer_value
+    puts "#{computer.name} wins ties! You lose!" if human_value == computer_value
   end
 
+  def play_again?
+    input = ""
+    puts "Play again? Enter 'y' for yes, 'n' for no."
+    loop do
+      input = gets.chomp
+      input = input.downcase
+      break if %w(y yes n no).include?(input)
+      puts "Please enter 'y' for yes, 'n' for no."
+    end
+    %w(y yes).include?(input)
+  end
+
+  def reset(deck)
+    deck.reset
+    human.reset(deck)
+    computer.reset(deck)
+  end
+
+  def show_bye
+    puts "Thanks for playing!"
+  end
 end
 
 Game.new.play
