@@ -62,7 +62,6 @@ class Human < Player
   def turn(deck)
     loop do
       display_hand
-      break if blackjack?
       action = choose_action(deck)
       break if turn_end(action)
     end
@@ -91,10 +90,6 @@ class Human < Player
   def turn_end(action)
     bust? || action == "stand"
   end
-
-  def skip_to_result?
-    blackjack? || bust?
-  end
 end
 
 class Computer < Player
@@ -122,7 +117,6 @@ class Computer < Player
   def show_one_card
     puts "#{name} Card - '#{hand.card_list[0]}'"
   end
-
 end
 
 class Card
@@ -160,7 +154,6 @@ class Card
   def soft_ace?
     value == 11
   end
-
 end
 
 class Hand
@@ -173,7 +166,7 @@ class Hand
   end
 
   def text
-    "#{card_list.join(", ")} - Total: #{value}"
+    "#{card_list.join(', ')} - Total: #{value}"
   end
 
   def card_list
@@ -184,9 +177,8 @@ class Hand
 
   def draw(deck)
     card = deck.random_card
-    card.harden_ace if harden_ace?(card)
     @cards << card
-    @value += card.value
+    total_value
     harden
   end
 
@@ -194,24 +186,30 @@ class Hand
     cards.each do |card|
       break if hard? || !over_21? || bust?
       card.harden_ace if card.soft_ace?
-      @value -= 10
+      total_value
     end
   end
 
-  def harden_ace?(card)
-    card.ace? && value > 10
+  def total_value
+    card_values = []
+    cards.each { |card| card_values << card.value }
+    @value = card_values.reduce(:+)
   end
 
   def blackjack?
     cards.count == 2 && value == 21
   end
 
+  def harden_ace?(card)
+    value > 21 && card.ace?
+  end
+
   def soft?
-    cards.any? { |card| card.soft_ace? }
+    cards.any?(&:soft_ace?)
   end
 
   def hard?
-    cards.none? { |card| card.soft_ace? }
+    cards.none?(&:soft_ace?)
   end
 
   def over_21?
@@ -257,9 +255,7 @@ class Game
 
   def play
     loop do
-      computer.show_one_card
-      human.turn(deck)
-      computer.turn(deck) unless human.skip_to_result?
+      round unless blackjack?
       result
       break unless play_again?
       reset(deck)
@@ -269,14 +265,22 @@ class Game
 
   private
 
+  def round
+    computer.show_one_card
+    human.turn(deck)
+    computer.turn(deck) unless human.bust?
+  end
+
+  def display_all_hands
+    human.display_hand
+    computer.display_hand
+  end
+
   def result
-    if blackjack?
-      blackjack_result
-    elsif bust?
-      bust_result
-    else
-      compare_players
-    end
+    display_all_hands
+    return blackjack_result if blackjack?
+    return bust_result if bust?
+    standard_result
   end
 
   def blackjack?
@@ -292,27 +296,64 @@ class Game
   end
 
   def blackjack_result
-    if blackjack_tie?
-      puts "You both got blackjack, but dealer wins ties! You lose!"
-    elsif human.blackjack?
-      puts "You got blackjack! You win!"
-    else
-      puts "#{computer.name} got blackjack! You win!"
-    end
+    return puts blackjack_tie_text if blackjack_tie?
+    return puts human_blackjack_text if human.blackjack?
+    puts computer_blackjack_text
   end
 
   def bust_result
-    dealer = computer.name
-    result = human.bust? ? "You busted! You lose!" : "#{dealer} busted! You win!"
+    result = human.bust? ? human_bust_text : computer_bust_text
     puts result
   end
 
-  def compare_players
-    human_value = human.hand.value
-    computer_value = computer.hand.value
-    puts "You win!" if human_value > computer_value
-    puts "You lose!" if computer_value > human_value
-    puts "#{computer.name} wins ties! You lose!" if human_value == computer_value
+  def standard_result
+    puts human_win_text if human_win?
+    puts computer_win_text if computer_win?
+    puts tie_text if tie?
+  end
+
+  def human_win?
+    human.value > computer.value
+  end
+
+  def computer_win?
+    computer.value > human.value
+  end
+
+  def tie?
+    human.value == computer.value
+  end
+
+  def blackjack_tie_text
+    "You both got blackjack, but dealer wins ties! You lose!"
+  end
+
+  def human_blackjack_text
+    "#{human.name} got blackjack! You win!"
+  end
+
+  def computer_blackjack_text
+    "#{computer.name} got blackjack! You lose!"
+  end
+
+  def human_bust_text
+    "#{human.name} busted! You lose!"
+  end
+
+  def computer_bust_text
+    "#{computer.name} busted! You win!"
+  end
+
+  def human_win_text
+    "#{human.value} beats #{computer.value}. You win!"
+  end
+
+  def computer_win_text
+    "#{computer.value} beats #{human.value}. You lose!"
+  end
+
+  def tie_text
+    "#{computer.name} wins ties! You lose!"
   end
 
   def play_again?
@@ -339,4 +380,3 @@ class Game
 end
 
 Game.new.play
-
