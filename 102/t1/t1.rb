@@ -1,181 +1,31 @@
 class Player
-  attr_accessor :hand, :name
+  attr_accessor :cards, :name, :value
 
   def initialize(deck)
     reset(deck)
   end
 
   def reset(deck)
-    @hand = Hand.new(deck)
-  end
-
-  def display_hand
-    puts "#{name}'s Hand - #{hand.text}"
-  end
-
-  def hit(deck)
-    hand.draw(deck)
-  end
-
-  def blackjack?
-    hand.blackjack?
-  end
-
-  def value
-    hand.value
-  end
-
-  def soft?
-    hand.soft?
-  end
-
-  def hard?
-    hand.hard?
-  end
-
-  def over_21?
-    hand.over_21?
-  end
-
-  def bust?
-    hard? && over_21?
-  end
-end
-
-class Human < Player
-  def initialize(deck)
-    super
-    @name = enter_name
-  end
-
-  def enter_name
-    input = ""
-    puts "What's your name?"
-    loop do
-      input = gets.strip
-      break unless input.empty?
-      puts "Please enter your name."
-    end
-    input
-  end
-
-  def turn(deck)
-    loop do
-      display_hand
-      action = choose_action(deck)
-      break if turn_end(action)
-    end
-  end
-
-  def choose_action(deck)
-    input = ""
-    loop do
-      puts "Enter 'H' to hit, 'S' to stand."
-      input = gets.strip
-      input = input.downcase
-      break if %w(h hit s stand).include?(input)
-    end
-    return "stand" if stand?(input)
-    hit(deck) if hit?(input)
-  end
-
-  def hit?(input)
-    %w(h hit).include?(input)
-  end
-
-  def stand?(input)
-    %w(s stand).include?(input)
-  end
-
-  def turn_end(action)
-    bust? || action == "stand"
-  end
-end
-
-class Computer < Player
-  def initialize(deck)
-    super
-    @name = "Dealer"
-  end
-
-  def turn(deck)
-    loop do
-      display_hand
-      break if blackjack? || stand?
-      hit(deck)
-    end
-  end
-
-  def hit?
-    value <= 16
-  end
-
-  def stand?
-    value > 16
-  end
-
-  def show_one_card
-    puts "#{name} Card - '#{hand.card_list[0]}'"
-  end
-end
-
-class Card
-  SUITS = %w(Clubs Diamonds Hearts Spades).freeze
-  RANK_VALUES = {}
-  ranks = ("2".."10").to_a + %w(Jack Queen King Ace(11))
-  values = (2..10).to_a + [10] * 3 + [11]
-  ranks.each { |rank| RANK_VALUES[rank] = "" }
-  RANK_VALUES.each_with_index do |(rank, _), index|
-    RANK_VALUES[rank] = values[index]
-  end
-  RANK_VALUES.freeze
-
-  attr_accessor :rank, :value, :suit
-
-  def initialize(rank, suit)
-    @rank = rank
-    @value = RANK_VALUES[rank]
-    @suit = suit
-  end
-
-  def text
-    "#{rank} of #{suit}"
-  end
-
-  def harden_ace
-    @rank = "Ace(1)"
-    @value = 1
-  end
-
-  def ace?
-    rank.include?("Ace")
-  end
-
-  def soft_ace?
-    value == 11
-  end
-end
-
-class Hand
-  attr_accessor :cards, :value
-
-  def initialize(deck)
     @cards = []
     @value = 0
-    2.times { draw(deck) }
+    2.times { hit(deck) }
   end
 
-  def text
-    "#{card_list.join(', ')} - Total: #{value}"
+  def to_s
+    "#{name}'s Hand - #{card_list.join(', ')} - Total: #{value}"
+  end
+
+  def display
+    puts to_s
   end
 
   def card_list
     card_list = []
-    cards.each { |card| card_list << card.text }
+    cards.each { |card| card_list << card.to_s }
     card_list
   end
 
-  def draw(deck)
+  def hit(deck)
     card = deck.random_card
     @cards << card
     total_value
@@ -218,6 +68,120 @@ class Hand
 
   def bust?
     hard? && over_21?
+  end
+end
+
+class Human < Player
+  def initialize(deck)
+    super
+    @name = enter_name
+  end
+
+  def enter_name
+    input = ""
+    puts "What's your name?"
+    loop do
+      input = gets.strip
+      break unless input.empty?
+      puts "Please enter your name."
+    end
+    input
+  end
+
+  def turn(deck)
+    loop do
+      display
+      action = choose_action(deck)
+      break if turn_end(action)
+    end
+  end
+
+  def choose_action(deck)
+    input = ""
+    loop do
+      puts "Enter 'H' to hit, 'S' to stand."
+      input = gets.strip
+      input = input.downcase
+      break if %w(h hit s stand).include?(input)
+    end
+    return "stand" if stand?(input)
+    hit(deck) if hit?(input)
+  end
+
+  def hit?(input)
+    %w(h hit).include?(input)
+  end
+
+  def stand?(input)
+    %w(s stand).include?(input)
+  end
+
+  def turn_end(action)
+    bust? || action == "stand"
+  end
+end
+
+class Computer < Player
+  def initialize(deck)
+    super
+    @name = "Dealer"
+  end
+
+  def turn(deck)
+    loop do
+      display
+      break if blackjack? || stand?
+      hit(deck)
+    end
+  end
+
+  def hit?
+    value <= 16
+  end
+
+  def stand?
+    value > 16
+  end
+
+  def show_one_card
+    puts "#{name} Card - '#{card_list[0]}'"
+  end
+end
+
+class Card
+  SUITS = %w(Clubs Diamonds Hearts Spades).freeze
+  RANK_VALUES = {}
+  ranks = ("2".."10").to_a + %w(Jack Queen King Ace(11))
+  values = (2..10).to_a + [10] * 3 + [11]
+  ranks.each { |rank| RANK_VALUES[rank] = "" }
+  RANK_VALUES.each_with_index do |(rank, _), index|
+    RANK_VALUES[rank] = values[index]
+  end
+  RANK_VALUES.freeze
+
+  attr_accessor :rank, :value, :suit
+
+  def initialize(rank, suit)
+    @rank = rank
+    @value = RANK_VALUES[rank]
+    @suit = suit
+  end
+
+  def to_s
+    "#{rank} of #{suit}"
+  end
+
+  def harden_ace
+    @rank = "Ace(1)"
+    @value = 1
+  end
+
+  def ace?
+    rank.include?("Ace")
+  end
+
+  def soft_ace?
+    value == 11
   end
 end
 
@@ -271,13 +235,13 @@ class Game
     computer.turn(deck) unless human.bust?
   end
 
-  def display_all_hands
-    human.display_hand
-    computer.display_hand
+  def display_players
+    human.display
+    computer.display
   end
 
   def result
-    display_all_hands
+    display_players
     return blackjack_result if blackjack?
     return bust_result if bust?
     standard_result
