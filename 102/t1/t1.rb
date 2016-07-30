@@ -46,10 +46,6 @@ class Player
     @value = card_values.reduce(:+)
   end
 
-  def blackjack?
-    cards.count == 2 && value == 21
-  end
-
   def harden_ace?(card)
     value > 21 && card.ace?
   end
@@ -130,7 +126,7 @@ class Computer < Player
   def turn(deck)
     loop do
       display
-      break if blackjack? || stand?
+      break if stand?
       hit(deck)
     end
   end
@@ -220,7 +216,7 @@ class Game
 
   def play
     loop do
-      round unless blackjack?
+      round
       result
       break unless play_again?
       reset(deck)
@@ -243,27 +239,12 @@ class Game
 
   def result
     display_players
-    return blackjack_result if blackjack?
     return bust_result if bust?
     standard_result
   end
 
-  def blackjack?
-    human.blackjack? || computer.blackjack?
-  end
-
-  def blackjack_tie?
-    human.blackjack? && computer.blackjack?
-  end
-
   def bust?
     human.bust? || computer.bust?
-  end
-
-  def blackjack_result
-    return puts blackjack_tie_text if blackjack_tie?
-    return puts human_blackjack_text if human.blackjack?
-    puts computer_blackjack_text
   end
 
   def bust_result
@@ -289,18 +270,6 @@ class Game
     human.value == computer.value
   end
 
-  def blackjack_tie_text
-    "You both got blackjack, but dealer wins ties! You lose!"
-  end
-
-  def human_blackjack_text
-    "#{human.name} got blackjack! You win!"
-  end
-
-  def computer_blackjack_text
-    "#{computer.name} got blackjack! You lose!"
-  end
-
   def human_bust_text
     "#{human.name} busted! You lose!"
   end
@@ -318,7 +287,7 @@ class Game
   end
 
   def tie_text
-    "#{computer.name} wins ties! You lose!"
+    "It's a tie!"
   end
 
   def play_again?
