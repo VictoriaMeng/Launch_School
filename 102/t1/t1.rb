@@ -1,5 +1,5 @@
 class Player
-  attr_accessor :cards, :name, :value
+  attr_reader :name, :value, :cards
 
   def initialize(deck)
     reset(deck)
@@ -27,7 +27,7 @@ class Player
 
   def hit(deck)
     card = deck.random_card
-    @cards << card
+    cards << card
     total_value
     harden
   end
@@ -159,7 +159,7 @@ class Card
   end
   RANK_VALUES.freeze
 
-  attr_accessor :rank, :value, :suit
+  attr_reader :rank, :value, :suit
 
   def initialize(rank, suit)
     @rank = rank
@@ -186,7 +186,7 @@ class Card
 end
 
 class Deck
-  attr_accessor :cards
+  attr_reader :cards
 
   def initialize
     @cards = []
@@ -195,6 +195,7 @@ class Deck
 
   def reset
     8.times { fifty_two_cards }
+    cards.shuffle!
   end
 
   def fifty_two_cards
@@ -204,12 +205,12 @@ class Deck
   end
 
   def random_card
-    cards.shuffle.pop
+    cards.pop
   end
 end
 
 class Game
-  attr_accessor :deck, :human, :computer
+  attr_reader :deck, :human, :computer
 
   def initialize
     @deck = Deck.new
