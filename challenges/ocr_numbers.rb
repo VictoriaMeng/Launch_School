@@ -1,115 +1,74 @@
-# Collect each mark into arrays.
-
 class OCR
-  attr_reader :binary
+
+  attr_reader :binary, :rows, :digit_count, :digits, :string
 
   def initialize(text)
     @binary = text
+    @rows = []
+    @digit_count = count_digits
+    @digits = []
+    @string = ""
+    digits_setup
   end
 
   def convert
-    return "0" if zero?
-    return "1" if one?
-    return "2" if two?
-    return "3" if three?
-    return "4" if four?
-    return "5" if five?
-    return "6" if six?
-    return "7" if seven?
-    return "8" if eight?
-    return "9" if nine?
-    "?"
+    sort_rows
+    sort_digits
+    convert_digits
+    string
   end
 
   private
 
-  def zero?
-    binary == <<-NUMBER.chomp
- _
-| |
-|_|
-
-    NUMBER
+  def digits_setup
+    digit_count.times { |digit| @digits << "" }
   end
 
-  def one?
-    binary == <<-NUMBER.chomp
-
-  |
-  |
-
-    NUMBER
+  def count_digits
+    binary[0..binary.index("\n")].length / 3
   end
 
-  def two?
-    binary == <<-NUMBER.chomp
- _
- _|
-|_
-
-    NUMBER
+  def sort_rows
+    binary.each_line("\n") { |line| @rows << line.chomp }
   end
 
-  def three?
-    binary == <<-NUMBER.chomp
- _
- _|
- _|
-
-    NUMBER
+  def sort_digits
+    rows.each do |row|
+      counter = 0
+      row.scan(/.../).each do |digit_part|
+        @digits[counter] << digit_part.delete(" ")
+        counter += 1
+      end
+    end
   end
 
-  def four?
-    binary == <<-NUMBER.chomp
-
-|_|
-  |
-
-    NUMBER
+  def convert_digits
+    digits.each { |digit| @string << match(digit) }
   end
 
-  def five?
-    binary == <<-NUMBER.chomp
- _
-|_
- _|
-
-    NUMBER
+  def match(digit)
+    return "0" if zero?(digit)
+    "1" if one?(digit)
   end
 
-  def six?
-    binary == <<-NUMBER.chomp
- _
-|_
-|_|
-
-    NUMBER
+  def zero?(digit)
+    digit == "_|||_|"
   end
 
-  def seven?
-    binary == <<-NUMBER.chomp
- _
-  |
-  |
-
-    NUMBER
+  def one?(digit)
+    digit == "||"
   end
 
-  def eight?
-    binary == <<-NUMBER.chomp
- _
-|_|
-|_|
-
-    NUMBER
-  end
-
-  def nine?
-    binary == <<-NUMBER.chomp
- _
-|_|
- _|
-
-    NUMBER
-  end
 end
+
+    text = <<-NUMBER.chomp
+    _ 
+  || |
+  ||_|
+
+    NUMBER
+
+result = OCR.new(text)
+result.convert
+
+
